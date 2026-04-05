@@ -1,0 +1,131 @@
+.bot-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bot-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  transition: background 0.3s;
+}
+
+.bot-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.bot-card--active {
+  border-color: var(--info);
+}
+
+.bot-card--active::before {
+  background: var(--accent-gradient);
+}
+
+.bot-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bot-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bot-card__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.bot-card__process {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  margin-top: 2px;
+  display: block;
+}
+
+.bot-card__desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bot-card__stats {
+  display: flex;
+  gap: 16px;
+}
+
+.bot-card__stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.bot-card__actions {
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+}
+
+.bot-card__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.bot-card__btn--run {
+  background: var(--accent-gradient);
+  color: white;
+}
+
+.bot-card__btn--run:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.bot-card__btn--stop {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.bot-card__btn--stop:hover {
+  background: var(--danger);
+  color: white;
+}

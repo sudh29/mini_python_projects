@@ -1,0 +1,90 @@
+.metrics-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.metric-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.metric-card--accent::before { background: var(--accent-gradient); }
+.metric-card--info::before { background: var(--info); }
+.metric-card--success::before { background: var(--success); }
+.metric-card--danger::before { background: var(--danger); }
+.metric-card--warning::before { background: var(--warning); }
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.metric-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-card--accent .metric-card__icon { background: var(--accent-bg); color: var(--accent); }
+.metric-card--info .metric-card__icon { background: var(--info-bg); color: var(--info); }
+.metric-card--success .metric-card__icon { background: var(--success-bg); color: var(--success); }
+.metric-card--danger .metric-card__icon { background: var(--danger-bg); color: var(--danger); }
+.metric-card--warning .metric-card__icon { background: var(--warning-bg); color: var(--warning); }
+
+.metric-card__label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-card__value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+/* ── Skeleton Loading ─────────────────────────────────────────── */
+.metric-card--skeleton {
+  pointer-events: none;
+}
+
+.skeleton {
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--hover-bg) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton--icon { width: 36px; height: 36px; border-radius: 10px; }
+.skeleton--text { width: 80px; height: 12px; }
+.skeleton--value { width: 60px; height: 28px; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

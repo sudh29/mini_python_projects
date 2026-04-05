@@ -51,3 +51,10 @@ target-version = ['py312']
 python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
+
+[tool.uv.workspace]
+members = [
+    "dashboard_prototype/backend",
+    "dashboard_prototype/monitoring",
+    "dashboard_prototype/worker",
+]
