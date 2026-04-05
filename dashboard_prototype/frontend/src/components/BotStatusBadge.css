@@ -1,0 +1,97 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
+}
+
+.badge--sm {
+  padding: 2px 8px;
+  font-size: 11px;
+  gap: 4px;
+}
+
+.badge__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Idle ──────────────────────────────────────────────────────── */
+.badge--idle {
+  background: var(--muted-bg);
+  color: var(--text-muted);
+}
+.badge--idle .badge__dot {
+  background: var(--text-muted);
+}
+
+/* ── Pending ──────────────────────────────────────────────────── */
+.badge--pending {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.badge--pending .badge__dot {
+  background: var(--warning);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* ── Running ──────────────────────────────────────────────────── */
+.badge--running {
+  background: var(--info-bg);
+  color: var(--info);
+}
+.badge--running .badge__dot {
+  background: var(--info);
+  animation: pulse-dot 1s ease-in-out infinite;
+  box-shadow: 0 0 6px var(--info);
+}
+
+/* ── Success ──────────────────────────────────────────────────── */
+.badge--success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.badge--success .badge__dot {
+  background: var(--success);
+}
+
+/* ── Failed ───────────────────────────────────────────────────── */
+.badge--failed {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.badge--failed .badge__dot {
+  background: var(--danger);
+}
+
+/* ── Cancelled ────────────────────────────────────────────────── */
+.badge--cancelled {
+  background: var(--muted-bg);
+  color: var(--text-secondary);
+}
+.badge--cancelled .badge__dot {
+  background: var(--text-secondary);
+}
+
+/* ── Retrying ─────────────────────────────────────────────────── */
+.badge--retrying {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.badge--retrying .badge__dot {
+  background: var(--warning);
+  animation: pulse-dot 0.8s ease-in-out infinite;
+}
+
+/* ── Animations ───────────────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}

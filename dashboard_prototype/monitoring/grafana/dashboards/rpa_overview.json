@@ -1,0 +1,117 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Active Bot Runs",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rpa_active_runs",
+          "legendFormat": "{{client_id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 3 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Bot Runs Total (by status)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(rpa_bot_runs_total[5m])",
+          "legendFormat": "{{bot_name}} - {{status}}"
+        }
+      ]
+    },
+    {
+      "title": "Bot Execution Duration",
+      "type": "histogram",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(rpa_bot_duration_seconds_bucket[10m]))",
+          "legendFormat": "p95 {{bot_name}}"
+        }
+      ]
+    },
+    {
+      "title": "Failure Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 8 },
+      "targets": [
+        {
+          "expr": "rate(rpa_bot_failures_total[5m])",
+          "legendFormat": "{{bot_name}} - {{error_type}}"
+        }
+      ]
+    },
+    {
+      "title": "API Request Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "rate(rpa_api_requests_total[5m])",
+          "legendFormat": "{{method}} {{endpoint}}"
+        }
+      ]
+    },
+    {
+      "title": "API Latency (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(rpa_api_request_duration_seconds_bucket[5m]))",
+          "legendFormat": "{{endpoint}}"
+        }
+      ]
+    },
+    {
+      "title": "Success Rate by Bot",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 12, "x": 6, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum(rate(rpa_bot_runs_total{status='success'}[1h])) by (bot_name) / sum(rate(rpa_bot_runs_total[1h])) by (bot_name) * 100",
+          "legendFormat": "{{bot_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 80 },
+              { "color": "green", "value": 95 }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["rpa", "automation"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "RPA Platform Overview",
+  "uid": "rpa-overview"
+}

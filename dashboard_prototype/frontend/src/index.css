@@ -1,0 +1,152 @@
+/* ═══════════════════════════════════════════════════════════════
+   RPA Dashboard — Design System
+   ══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Dark Theme (default) ─────────────────────────────────────── */
+:root {
+  /* Background */
+  --bg: #0c0d11;
+  --card-bg: #14151b;
+  --sidebar-bg: #101118;
+  --header-bg: rgba(16, 17, 24, 0.85);
+  --hover-bg: rgba(255, 255, 255, 0.04);
+  --input-bg: #1a1b24;
+  --muted-bg: rgba(255, 255, 255, 0.06);
+
+  /* Borders */
+  --border: #1e2030;
+
+  /* Text */
+  --text-primary: #f0f1f5;
+  --text-secondary: #9ca3b4;
+  --text-muted: #5c6378;
+
+  /* Accent (Cyan-Blue) */
+  --accent: #3b82f6;
+  --accent-bg: rgba(59, 130, 246, 0.12);
+  --accent-glow: rgba(59, 130, 246, 0.2);
+  --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+
+  /* Semantic Colors */
+  --success: #22c55e;
+  --success-bg: rgba(34, 197, 94, 0.12);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --info: #06b6d4;
+  --info-bg: rgba(6, 182, 212, 0.12);
+
+  /* Typography */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+
+  /* Misc */
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Light Theme ──────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg: #f5f6fa;
+  --card-bg: #ffffff;
+  --sidebar-bg: #ffffff;
+  --header-bg: rgba(255, 255, 255, 0.9);
+  --hover-bg: rgba(0, 0, 0, 0.03);
+  --input-bg: #f0f1f5;
+  --muted-bg: rgba(0, 0, 0, 0.04);
+  --border: #e2e4ea;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --accent-bg: rgba(59, 130, 246, 0.08);
+  --accent-glow: rgba(59, 130, 246, 0.15);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  color-scheme: light;
+}
+
+/* ── CSS Reset ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ── Selection ────────────────────────────────────────────────── */
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+/* ── Focus Visible ────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Global Headings ──────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* ── Link Reset ───────────────────────────────────────────────── */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Code ─────────────────────────────────────────────────────── */
+code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--hover-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
