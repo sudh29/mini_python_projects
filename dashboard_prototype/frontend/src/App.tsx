@@ -7,7 +7,6 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import BotDetail from './pages/BotDetail';
 import Login from './pages/Login';
-import { getAuthToken } from './services/api';
 import './App.css';
 
 function AppLayout() {

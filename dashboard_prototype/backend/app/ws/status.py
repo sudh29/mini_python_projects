@@ -6,7 +6,6 @@ whenever a bot status changes.
 """
 
 import asyncio
-import json
 from typing import Dict, Optional, Set
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query

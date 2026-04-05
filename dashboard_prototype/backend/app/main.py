@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import init_db, close_db
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 @asynccontextmanager
@@ -32,6 +33,8 @@ app = FastAPI(
     description="RPA Orchestration & Monitoring Control Plane",
     lifespan=lifespan,
 )
+
+Instrumentator().instrument(app).expose(app)
 
 # ── CORS ─────────────────────────────────────────────────────────
 app.add_middleware(

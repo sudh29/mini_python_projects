@@ -5,7 +5,7 @@ BotRun model — tracks each execution of a bot.
 import enum
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -47,19 +47,19 @@ class BotRun(Base):
     client_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("clients.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    celery_task_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    celery_task_id: Mapped[str] = mapped_column(String(255), nullable=True)
     status: Mapped[RunStatus] = mapped_column(
         Enum(RunStatus), default=RunStatus.PENDING, nullable=False
     )
-    start_time: Mapped[Optional[datetime]] = mapped_column(
+    start_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    end_time: Mapped[Optional[datetime]] = mapped_column(
+    end_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    error_message: Mapped[str] = mapped_column(Text, nullable=True)
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
-    artifacts_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    artifacts_path: Mapped[str] = mapped_column(String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow
     )

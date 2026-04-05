@@ -5,9 +5,7 @@ These tasks are dispatched by the API and executed on worker VMs.
 Each task manages the full bot lifecycle: START → RUNNING → SUCCESS/FAILED → RETRY.
 """
 
-import asyncio
 import time
-import uuid
 from typing import Optional
 from datetime import datetime, timezone
 
@@ -59,7 +57,6 @@ def run_bot(self, bot_id: str, client_id: str, run_id: str, parameters: Optional
         run_id:     UUID of the bot_run record
         parameters: Optional runtime parameters
     """
-    import httpx
 
     api_base = "http://localhost:8000"
     task_id = self.request.id

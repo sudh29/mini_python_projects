@@ -15,8 +15,9 @@ from app.auth.dependencies import CurrentUser, get_current_user, require_role
 from app.database import get_db
 from app.models import Bot, BotRun, RunStatus
 from app.models.client import UserRole
-from app.schemas.bot import BotCreate, BotOut, BotRunRequest, BotStopRequest, BotWithStatus
+from app.schemas.bot import BotOut, BotRunRequest, BotStopRequest, BotWithStatus
 from app.schemas.bot_run import BotRunOut, BotRunListOut
+from app.metrics_client import BOT_RUNS_TOTAL, BOT_RUNS_ACTIVE
 
 router = APIRouter(prefix="/api/bots", tags=["bots"])
 
@@ -213,11 +214,15 @@ async def run_bot(
             task_id=str(uuid.uuid4()),
         )
         run.celery_task_id = task.id
-    except Exception as e:
+    except Exception:
         # If Celery is unavailable, still create the run but mark as pending
         run.celery_task_id = f"offline-{uuid.uuid4()}"
 
     await session.flush()
+    
+    BOT_RUNS_TOTAL.labels(client_id=user.client_id, bot_id=bot.id).inc()
+    BOT_RUNS_ACTIVE.labels(client_id=user.client_id, bot_id=bot.id).inc()
+
     return BotRunOut.model_validate(run)
 
 
@@ -257,5 +262,9 @@ async def stop_bot(
     run.status = RunStatus.CANCELLED
     run.end_time = _utcnow()
     await db.flush()
+    
+    BOT_RUNS_ACTIVE.labels(client_id=user.client_id, bot_id=req.bot_id).dec()
+    from app.metrics_client import BOT_RUNS_COMPLETED
+    BOT_RUNS_COMPLETED.labels(client_id=user.client_id, bot_id=req.bot_id, status="cancelled").inc()
 
     return {"status": "cancelled", "run_id": run.id}

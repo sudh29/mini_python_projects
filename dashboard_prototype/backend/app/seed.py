@@ -221,9 +221,9 @@ async def seed() -> None:
 
         await session.commit()
         print("✅ Database seeded successfully!")
-        print(f"   Clients:  2  (Acme Healthcare, Pinnacle Insurance)")
-        print(f"   Users:    3  (admin@acme, viewer@acme, admin@pinnacle)")
-        print(f"   Bots:     7  (4 Acme + 3 Pinnacle)")
+        print("   Clients:  2  (Acme Healthcare, Pinnacle Insurance)")
+        print("   Users:    3  (admin@acme, viewer@acme, admin@pinnacle)")
+        print("   Bots:     7  (4 Acme + 3 Pinnacle)")
         print(f"   Runs:     {len(all_runs)}  (mixed statuses, 1 currently running)")
         print(f"   Logs:     {len(logs)}")
 

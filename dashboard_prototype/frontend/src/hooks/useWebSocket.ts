@@ -24,10 +24,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WSMessage | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const mountedRef = useRef(true);
 
-  const connect = useCallback(() => {
+  const connect = useCallback(function doConnect() {
     if (!mountedRef.current) return;
 
     const token = getAuthToken() || '';
@@ -66,7 +66,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         setIsConnected(false);
         console.log('[WS] Disconnected');
         if (autoReconnect) {
-          reconnectTimerRef.current = setTimeout(connect, reconnectInterval);
+          reconnectTimerRef.current = setTimeout(doConnect, reconnectInterval);
         }
       };
 
@@ -75,7 +75,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       };
     } catch {
       if (autoReconnect && mountedRef.current) {
-        reconnectTimerRef.current = setTimeout(connect, reconnectInterval);
+        reconnectTimerRef.current = setTimeout(doConnect, reconnectInterval);
       }
     }
   }, [onMessage, onStatusUpdate, autoReconnect, reconnectInterval]);

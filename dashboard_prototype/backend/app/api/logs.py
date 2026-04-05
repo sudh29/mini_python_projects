@@ -111,6 +111,9 @@ async def update_run_status(
 
     if new_status in ("success", "failed", "cancelled"):
         run.end_time = datetime.now(timezone.utc)
+        from app.metrics_client import BOT_RUNS_ACTIVE, BOT_RUNS_COMPLETED
+        BOT_RUNS_ACTIVE.labels(client_id=run.client_id, bot_id=run.bot_id).dec()
+        BOT_RUNS_COMPLETED.labels(client_id=run.client_id, bot_id=run.bot_id, status=new_status).inc()
 
     if body.get("error_message"):
         run.error_message = body["error_message"]

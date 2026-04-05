@@ -2,7 +2,7 @@
  * Dashboard page — main overview with metrics and bot grid.
  */
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import Header from '../components/Header';
 import MetricsPanel from '../components/MetricsPanel';
 import BotCard from '../components/BotCard';
@@ -15,7 +15,6 @@ import './Dashboard.css';
 export default function Dashboard() {
   const { data: bots, loading: botsLoading, refetch: refetchBots } = useApi<Bot[]>(fetchBots);
   const { data: metrics, loading: metricsLoading, refetch: refetchMetrics } = useApi(fetchMetrics);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // WebSocket for real-time updates
   const { isConnected } = useWebSocket({
@@ -26,28 +25,22 @@ export default function Dashboard() {
   });
 
   const handleRun = async (botId: string) => {
-    setActionLoading(botId);
     try {
       await runBot(botId);
       refetchBots();
       refetchMetrics();
     } catch (err) {
       console.error('Failed to run bot:', err);
-    } finally {
-      setActionLoading(null);
     }
   };
 
   const handleStop = async (botId: string) => {
-    setActionLoading(botId);
     try {
       await stopBot(botId);
       refetchBots();
       refetchMetrics();
     } catch (err) {
       console.error('Failed to stop bot:', err);
-    } finally {
-      setActionLoading(null);
     }
   };
 

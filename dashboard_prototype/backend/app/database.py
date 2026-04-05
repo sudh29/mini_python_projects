@@ -44,9 +44,8 @@ async def get_db() -> AsyncSession:  # type: ignore[misc]
 
 # ── Lifecycle Helpers ────────────────────────────────────────────
 async def init_db() -> None:
-    """Create all tables (for prototyping; use Alembic in prod)."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """Initialize DB connections (Schema managed by Alembic)."""
+    pass
 
 
 async def close_db() -> None:

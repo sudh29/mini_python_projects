@@ -2,7 +2,7 @@
  * Metrics panel — summary cards showing key dashboard KPIs.
  */
 
-import { Bot, CheckCircle, XCircle, Zap, Clock, TrendingUp } from 'lucide-react';
+import { Bot, CheckCircle, XCircle, Zap, TrendingUp } from 'lucide-react';
 import type { DashboardMetrics } from '../types';
 import './MetricsPanel.css';
 

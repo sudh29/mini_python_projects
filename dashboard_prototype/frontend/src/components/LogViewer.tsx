@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Filter, Download, Trash2 } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import type { LogEntry, LogLevel } from '../types';
 import './LogViewer.css';
 

@@ -5,7 +5,7 @@ Log model — structured log entries for bot runs.
 import enum
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Index, String, Text
 from sqlalchemy import JSON
@@ -49,7 +49,7 @@ class Log(Base):
         Enum(LogLevel), default=LogLevel.INFO, nullable=False
     )
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    metadata_json: Mapped[Optional[dict]] = mapped_column(
+    metadata_json: Mapped[dict] = mapped_column(
         JSON, nullable=True, default=None
     )
     timestamp: Mapped[datetime] = mapped_column(
