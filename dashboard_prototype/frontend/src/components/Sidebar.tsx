@@ -18,10 +18,9 @@ import './Sidebar.css';
 
 interface SidebarProps {
   username?: string;
-  clientName?: string;
 }
 
-export default function Sidebar({ username = 'admin@acme', clientName = 'Acme Healthcare' }: SidebarProps) {
+export default function Sidebar({ username = 'admin@acme' }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = () => {
@@ -37,8 +36,7 @@ export default function Sidebar({ username = 'admin@acme', clientName = 'Acme He
         </div>
         {!collapsed && (
           <div className="sidebar__brand-text">
-            <span className="sidebar__title">RPA Control</span>
-            <span className="sidebar__subtitle">{clientName}</span>
+            <span className="sidebar__title">Jorie AI</span>
           </div>
         )}
         <button
@@ -53,11 +51,11 @@ export default function Sidebar({ username = 'admin@acme', clientName = 'Acme He
       <nav className="sidebar__nav">
         <NavLink to="/" end className="sidebar__link" id="nav-dashboard">
           <LayoutDashboard size={20} />
-          {!collapsed && <span>Dashboard</span>}
+          {!collapsed && <span>RCM Dashboard</span>}
         </NavLink>
         <NavLink to="/bots" className="sidebar__link" id="nav-bots">
           <Bot size={20} />
-          {!collapsed && <span>Bots</span>}
+          {!collapsed && <span>Digital Workers</span>}
         </NavLink>
         <NavLink to="/settings" className="sidebar__link" id="nav-settings">
           <Settings size={20} />

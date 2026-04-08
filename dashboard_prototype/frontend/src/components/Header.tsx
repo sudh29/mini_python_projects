@@ -18,6 +18,20 @@ export default function Header({ title, subtitle, isConnected = false }: HeaderP
         <h1 className="header__title">{title}</h1>
         {subtitle && <span className="header__subtitle">{subtitle}</span>}
       </div>
+      <div className="header__filters">
+        <select className="header__select" defaultValue="all">
+          <option value="all">All Clients</option>
+          <option value="othone">Othone</option>
+          <option value="gce">GCE</option>
+          <option value="hampton">Hampton</option>
+        </select>
+        <select className="header__select" defaultValue="all">
+          <option value="all">All Processes</option>
+          <option value="ev">EV</option>
+          <option value="preauth">Pre-Auth</option>
+          <option value="payment">Payment Posting</option>
+        </select>
+      </div>
       <div className="header__right">
         <div className="header__search" id="header-search">
           <Search size={16} />
