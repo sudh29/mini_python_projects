@@ -4,76 +4,75 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ── Dark Theme (default) ─────────────────────────────────────── */
+/* ── Global Theme (Jorie AI aesthetic default) ──────────────────── */
 :root {
   /* Background */
-  --bg: #0c0d11;
-  --card-bg: #14151b;
-  --sidebar-bg: #101118;
-  --header-bg: rgba(16, 17, 24, 0.85);
-  --hover-bg: rgba(255, 255, 255, 0.04);
-  --input-bg: #1a1b24;
-  --muted-bg: rgba(255, 255, 255, 0.06);
+  --bg: #f2f5f9; /* Soft, clinical off-white */
+  --card-bg: #ffffff;
+  --sidebar-bg: #0a1f3d; /* Deep Jorie Navy */
+  --header-bg: rgba(255, 255, 255, 0.95);
+  --hover-bg: rgba(10, 31, 61, 0.05);
+  --input-bg: #ffffff;
+  --muted-bg: rgba(10, 31, 61, 0.04);
 
   /* Borders */
-  --border: #1e2030;
+  --border: #e2e8f0;
 
   /* Text */
-  --text-primary: #f0f1f5;
-  --text-secondary: #9ca3b4;
-  --text-muted: #5c6378;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverse: #f8fafc; /* For text on dark backgrounds like sidebar */
 
-  /* Accent (Cyan-Blue) */
-  --accent: #3b82f6;
-  --accent-bg: rgba(59, 130, 246, 0.12);
-  --accent-glow: rgba(59, 130, 246, 0.2);
-  --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  /* Accent (Teal/Emerald - clinical feeling) */
+  --accent: #0ea5e9;
+  --accent-bg: rgba(14, 165, 233, 0.08);
+  --accent-glow: rgba(14, 165, 233, 0.15);
+  --accent-gradient: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
 
   /* Semantic Colors */
-  --success: #22c55e;
-  --success-bg: rgba(34, 197, 94, 0.12);
-  --danger: #ef4444;
+  --success: #10b981; /* Emerald */
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --danger: #ef4444; /* Coral/Red */
   --danger-bg: rgba(239, 68, 68, 0.12);
-  --warning: #f59e0b;
+  --warning: #f59e0b; /* Amber */
   --warning-bg: rgba(245, 158, 11, 0.12);
-  --info: #06b6d4;
-  --info-bg: rgba(6, 182, 212, 0.12);
+  --info: #0ea5e9; /* Sky Blue */
+  --info-bg: rgba(14, 165, 233, 0.12);
 
   /* Typography */
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
 
   /* Misc */
-  --radius: 14px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  --radius: 8px; /* Slightly sharper radii for a clinical software feel */
+  --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
 
   font-family: var(--font);
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-primary);
   background: var(--bg);
-  color-scheme: dark;
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Light Theme ──────────────────────────────────────────────── */
-[data-theme="light"] {
-  --bg: #f5f6fa;
-  --card-bg: #ffffff;
-  --sidebar-bg: #ffffff;
-  --header-bg: rgba(255, 255, 255, 0.9);
-  --hover-bg: rgba(0, 0, 0, 0.03);
-  --input-bg: #f0f1f5;
-  --muted-bg: rgba(0, 0, 0, 0.04);
-  --border: #e2e4ea;
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-  --accent-bg: rgba(59, 130, 246, 0.08);
-  --accent-glow: rgba(59, 130, 246, 0.15);
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  color-scheme: light;
+/* ── Dark Theme (Optional) ────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg: #0c0d11;
+  --card-bg: #14151b;
+  --sidebar-bg: #0a1f3d; /* Keep Navy or slightly darker */
+  --header-bg: rgba(16, 17, 24, 0.95);
+  --hover-bg: rgba(255, 255, 255, 0.04);
+  --input-bg: #1a1b24;
+  --muted-bg: rgba(255, 255, 255, 0.06);
+  --border: #1e2030;
+  --text-primary: #f0f1f5;
+  --text-secondary: #9ca3b4;
+  --text-muted: #5c6378;
+  --text-inverse: #f0f1f5;
+  color-scheme: dark;
 }
 
 /* ── CSS Reset ────────────────────────────────────────────────── */

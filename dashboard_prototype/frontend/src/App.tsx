@@ -23,7 +23,6 @@ function AppLayout() {
     <div className="app-layout">
       <Sidebar
         username={user?.username || 'admin@acme'}
-        clientName="Acme Healthcare"
       />
       <main className="app-main">
         <Routes>

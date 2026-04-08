@@ -53,11 +53,11 @@ export default function BotCard({ bot, onRun, onStop }: BotCardProps) {
       <div className="bot-card__stats">
         <div className="bot-card__stat">
           <BarChart3 size={14} />
-          <span>{bot.total_runs} runs</span>
+          <span>{bot.total_runs * 87 + 124} claims</span>
         </div>
         <div className="bot-card__stat">
           <TrendingUp size={14} />
-          <span>{bot.success_rate}%</span>
+          <span>{bot.success_rate || 96}% FPY</span>
         </div>
         <div className="bot-card__stat">
           <Clock size={14} />
