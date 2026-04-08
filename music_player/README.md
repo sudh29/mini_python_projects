@@ -1,476 +1,329 @@
-# Kivy Music Player Application
+<<<<<<< HEAD
+# Mini Python Projects Collection
 
-A feature-rich music player built with Python's Kivy framework for cross-platform GUI development.
+A comprehensive collection of mini Python projects demonstrating various programming concepts and libraries. This repository showcases practical implementations of games, utilities, and data processing applications.
 
-## Features
+## Project Overview
 
-✅ **Playback Controls**
+### 📁 Project Structure
 
-- Play, Pause, Stop buttons
-- Previous/Next song navigation
-- Play/Pause status indicator
-- Multiple audio backend support (ffplay, Kivy SoundLoader)
+```
+Mini_Python_Projects/
+├── game/                          # Game implementations
+│   ├── minesweeper_game/         # Classic Minesweeper game with Tkinter
+│   ├── snake_game/               # Snake game implementation
+│   └── tic_tac_toe/              # Tic-Tac-Toe game
+├── multi_threading/               # Concurrency demonstrations
+│   ├── 1_basic_threading.py      # Threading basics
+│   ├── 2_lock_threading.py       # Thread synchronization with locks
+│   ├── 3_multiprocessing.py      # CPU-bound parallel processing
+│   └── 4_asyncio.py              # Async I/O with event loop
+├── music_player/                  # Kivy-based music player GUI
+├── notepad/                       # Tkinter text editor application
+├── pdf/                           # PDF utilities
+│   ├── image2pdf.py              # Convert images to PDF
+│   └── read_pdf.py               # Extract text from PDF files
+├── text_extraction_image/         # OCR and image text extraction
+│   └── image_to_text.py          # Extract text from images
+├── web_scraping/                  # Web scraping projects
+│   ├── web_scraping.py           # Basic web scraping utility
+│   ├── web_project0/             # YouTube data analysis (Jupyter notebooks)
+│   └── web_project1/             # Indian stock market sentiment analysis
+└── requirements.txt               # Project dependencies
+```
 
-✅ **Volume Control**
+## 🎮 Game Projects
 
-- Slider-based volume adjustment (0-100%)
-- Real-time volume changes during playback
+### Minesweeper Game
 
-✅ **Progress Tracking**
+- Classic Minesweeper implementation with grid-based gameplay
+- Cell reveal and flag mechanics
+- Mine detection and numbering system
 
-- Visual progress slider showing playback position
-- Time display in MM:SS format (current time / total duration)
-- Automatic next song on completion
+### Snake Game
 
-✅ **File Selection**
+- Real-time snake movement and growth
+- Food collection mechanics
+- Collision detection
 
-- File browser dialog for music selection
-- Support for multiple audio formats: MP3, WAV, OGG, FLAC
-- Recent file selection memory
+### Tic-Tac-Toe
 
-✅ **User Interface**
+- Two-player game implementation
+- Win detection and draw scenarios
+- Interactive board interface
 
-- Clean, intuitive layout with color-coded buttons
-- Status display with real-time feedback
-- Real-time progress updates (100ms intervals)
-- Responsive controls
-- Color-coded button states
+## ⚙️ Multi-Threading & Concurrency
 
-✅ **Cross-Platform Support**
+Learn about different concurrency models in Python:
 
-- Windows with audio output
-- macOS with audio output
-- Linux/WSL with multiple audio backends
-- Platform-optimized audio handling
+1. **Basic Threading** - Introduction to thread creation and lifecycle
+2. **Lock-based Threading** - Thread synchronization and resource sharing
+3. **Multiprocessing** - CPU-bound parallel execution (bypasses GIL)
+4. **Async I/O** - Event-driven I/O operations with asyncio
 
-## Installation
+Each module includes:
+
+- Detailed docstrings and type hints
+- Real-world use case examples
+- Performance comparisons
+- Best practices documentation
+
+## 🎵 Music Player
+
+Kivy-based cross-platform music player featuring:
+
+- Play/pause/stop controls
+- Volume adjustment
+- Playlist management
+- Support for MP3, WAV, OGG, FLAC formats
+- Real-time progress tracking
+- File browser integration
+
+## 📝 Notepad Application
+
+Feature-rich text editor built with Tkinter:
+
+- New, Open, Save, Save As functionality
+- Undo/Redo support
+- Cut, Copy, Paste operations
+- Line and column position tracking
+- Keyboard shortcuts
+- Multi-format file support
+- Cross-platform compatibility (Windows, Linux, macOS)
+
+## 📄 PDF Utilities
+
+### image2pdf.py
+
+Convert multiple image files to a single PDF document
+
+- Supports PNG, JPG, JPEG formats
+- Batch processing
+- Configurable output directory
+
+### read_pdf.py
+
+Extract text content from PDF files
+
+- Text extraction with formatting
+- Multi-page support
+- Error handling for corrupted PDFs
+
+## 🖼️ Text Extraction from Images (OCR)
+
+### image_to_text.py
+
+Extract text from images using OCR technology:
+
+- Supports JPEG, PNG formats
+- Multi-language text detection
+- Configurable output formatting
+
+## 🕷️ Web Scraping Projects
+
+### web_scraping.py
+
+General-purpose web scraping utility with:
+
+- Beautiful Soup for HTML parsing
+- Requests library for HTTP requests
+- Error handling and retry logic
+- User-agent rotation
+
+### web_project0/
+
+YouTube analytics project using Jupyter notebooks:
+
+- `1_clinic_data.ipynb` - Healthcare data analysis
+- `2_download_image.ipynb` - Image downloading utilities
+- `2_youtube_views.ipynb` & `4_youtube_views.ipynb` - YouTube view analytics
+
+### web_project1/
+
+Indian Stock Market Intelligence System:
+
+- Mock data collection with sentiment analysis
+- Data processing pipeline with Pandas/Parquet
+- Sentiment analysis on financial data
+- Visualization of sentiment distribution
+
+Features:
+
+- Modular architecture (collection, processing, analysis)
+- Logging integration
+- Data export to Parquet format
+- PNG visualization generation
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-```bash
-python3 --version  # Python 3.6+
-```
+- Python 3.12 or higher
+- pip or conda package manager
 
-### Install Dependencies
+### Installation
 
-```bash
-pip install kivy
-```
-
-### For WSL/Linux with Audio Support
+1. Clone or download the repository
+2. Install dependencies:
 
 ```bash
-# Install ffmpeg (includes ffplay for audio playback)
-sudo apt-get install ffmpeg
-
-# Install Kivy dependencies
-sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+pip install -r requirements.txt
 ```
 
-### Platform-Specific Setup
-
-**Windows:**
+3. For specific projects, install additional dependencies:
 
 ```bash
-pip install kivy
-# Audio playback works natively
+# For music player
+pip install kivy python-vlc
+
+# For GUI applications
+pip install pillow
+
+# For web scraping
+pip install beautifulsoup4 requests selenium
+
+# For PDF operations
+pip install PyPDF2 img2pdf
+
+# For OCR
+pip install pytesseract pillow
+
+# For data analysis projects
+pip install pandas numpy matplotlib seaborn scikit-learn
 ```
 
-**macOS:**
+### Running Projects
+
+**Games:**
 
 ```bash
-brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf
-pip install kivy
+cd game/minesweeper_game
+python main.py
+
+cd game/snake_game
+python main.py
 ```
 
-**Linux (Ubuntu/Debian):**
+**Utilities:**
 
 ```bash
-sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-pip install kivy
-sudo apt-get install ffmpeg  # For audio playback support
+# Notepad
+python notepad/notepad.py
+
+# Music Player
+python music_player/music_player.py
+
+# Web Scraping
+python web_scraping/web_scraping.py
 ```
 
-## Usage
-
-### Running the Application
+**Concurrency Examples:**
 
 ```bash
-python3 music_player.py
+cd multi_threading
+python 1_basic_threading.py
+python 2_lock_threading.py
+python 3_multiprocessing.py
+python 4_asyncio.py
 ```
 
-### How to Use
+## 📋 Features
 
-1. **Loading a Song:**
+### Code Quality
 
-   - Click "📁 Load Playlist" button
-   - Navigate to your music files
-   - Select an audio file (MP3, WAV, OGG, or FLAC)
-   - Click "Load"
-   - Selected song appears in the display
+- ✅ Type hints on all functions
+- ✅ Comprehensive docstrings
+- ✅ Error handling and logging
+- ✅ PEP 8 compliant formatting
 
-2. **Playing Music:**
+### Project Benefits
 
-   - Click "▶ Play" to start playback
-   - Music title will display in the player
-   - Progress bar updates in real-time
-   - Time display shows current time / total duration
+- Learning resource for Python concepts
+- Real-world application examples
+- Modular and reusable code
+- Cross-platform compatibility
 
-3. **Playback Controls:**
+## 🛠️ Technologies Used
 
-   - **⏮ Prev**: Play previous song (if playlist available)
-   - **▶ Play**: Start or resume playback
-   - **⏸ Pause**: Pause current playback
-   - **⏹ Stop**: Stop playback and reset progress
-   - **Next ⏭**: Play next song (if playlist available)
+- **Python 3.12+** - Main programming language
+- **Tkinter** - GUI for notepad and games
+- **Kivy** - Cross-platform GUI framework
+- **Threading/Multiprocessing** - Concurrency models
+- **Asyncio** - Asynchronous I/O
+- **Pandas** - Data analysis and manipulation
+- **Matplotlib** - Data visualization
+- **Beautiful Soup** - Web scraping
+- **Selenium** - Browser automation
+- **img2pdf** - Image to PDF conversion
+- **PyTesseract** - OCR text extraction
 
-4. **Volume Adjustment:**
+## 📚 Learning Outcomes
 
-   - Drag the "Volume" slider left/right
-   - Range: 0% (mute) to 100% (maximum)
-   - Volume changes apply immediately during playback
+This project collection demonstrates:
 
-5. **Progress Tracking:**
-   - Watch the progress slider for playback progress
-   - Time display shows: MM:SS / MM:SS format
-   - Slider updates every 100ms
-   - Status bar shows current operation (Playing, Paused, Stopped, etc.)
+1. Object-oriented programming (OOP)
+2. Concurrency models (threading, multiprocessing, async)
+3. GUI development with Tkinter and Kivy
+4. Web scraping and data collection
+5. Data processing and analysis pipelines
+6. File I/O and format handling
+7. Error handling and logging best practices
+8. Type hints and documentation standards
 
-## UI Components
+## ⚠️ Known Limitations
 
-### Display Section (30% of window)
+- WSL users: Audio playback in music player requires ffmpeg installation
+- PDF operations: Requires pdf-related packages
+- OCR: Requires Tesseract engine installation on system
+- Web scraping: Some websites may block automated requests
 
-- **Title**: "Music Player" application header
-- **Song Label**: Currently selected/playing song filename
-- **Time Label**: Current playback time / Total duration (MM:SS / MM:SS)
+## 🔧 Troubleshooting
 
-### Progress Bar (10% of window)
+### Import Errors
 
-- Visual representation of playback progress
-- Range: 0-100%
-- Updates in real-time during playback
+Ensure all dependencies are installed: `pip install -r requirements.txt`
 
-### Control Buttons (25% of window)
+### Audio Issues (Music Player)
 
-5-column grid layout:
+- Install ffmpeg: `sudo apt-get install ffmpeg`
+- On macOS: `brew install ffmpeg`
 
-| Button  | Color     | Function       |
-| ------- | --------- | -------------- |
-| ⏮ Prev  | Dark Gray | Previous track |
-| ▶ Play  | Green     | Play/Resume    |
-| ⏸ Pause | Yellow    | Pause playback |
-| ⏹ Stop  | Red       | Stop & reset   |
-| Next ⏭  | Dark Gray | Next track     |
-
-### Volume Control (15% of window)
-
-- Label: "Volume:"
-- Slider: 0 to 1.0 range
-- Real-time volume updates
-
-### Playlist Button (10% of window)
-
-- "📁 Load Playlist" button
-- Opens file chooser dialog
-- Filters for audio files only
-
-### Status Label (10% of window)
-
-- Green text status display
-- Shows: Ready, Playing, Paused, Stopped
-- Error messages when applicable
-- Backend information (ffplay, Kivy)
-
-## Supported Audio Formats
-
-| Format | Extension | Notes                |
-| ------ | --------- | -------------------- |
-| MP3    | .mp3      | Most common format   |
-| WAV    | .wav      | Uncompressed audio   |
-| OGG    | .ogg      | Open-source format   |
-| FLAC   | .flac     | Lossless compression |
-
-## Audio Playback Backends
-
-The application automatically selects the best audio backend available:
-
-### 1. **ffplay** (Recommended for WSL/Linux)
-
-- Part of FFmpeg suite
-- Best compatibility on Linux/WSL
-- Transparent audio playback
-- `Status: Playing <filename> (FFplay)`
-
-### 2. **Kivy SoundLoader** (Windows/macOS)
-
-- Built-in Kivy audio support
-- Native audio drivers
-- Direct hardware access
-- `Status: Playing <filename> (Kivy)`
-
-### 3. **python-vlc** (Optional fallback)
-
-- VLC media engine integration
-- Highly compatible codec support
-- Install: `pip install python-vlc`
-
-## Code Structure
-
-### Main Class: MusicPlayerApp
-
-```python
-class MusicPlayerApp(App):
-    """Kivy-based music player with cross-platform audio support."""
-
-    # Key attributes:
-    current_song          # Currently selected audio file path
-    sound                 # Kivy Sound object
-    ffplay_process        # ffplay subprocess (Linux)
-    is_playing            # Playback state flag
-    progress_slider       # Progress bar widget
-    volume_slider         # Volume control widget
-    status_label          # Status display
-
-    # Key methods:
-    build()               # Create and configure UI layout
-    play_music()          # Start playback (ffplay or Kivy)
-    pause_music()         # Pause current playback
-    stop_music()          # Stop and reset playback
-    set_volume()          # Adjust volume level
-    load_playlist()       # Open file chooser dialog
-    update_progress()     # Update progress bar (scheduled)
-    format_time()         # Convert seconds to MM:SS format
-    next_song()           # Play next track
-    previous_song()       # Play previous track
-```
-
-## Error Handling
-
-The application gracefully handles:
-
-- ✓ Missing audio files
-- ✓ Unsupported file formats
-- ✓ Missing audio devices (WSL limitation)
-- ✓ Codec unavailability
-- ✓ File path errors
-- ✓ Backend initialization failures
-
-Status messages guide users with informative feedback:
-
-```
-"Status: No song selected"
-"Status: Ready to play"
-"Status: Playing audio.mp3"
-"Status: Paused"
-"Status: ffplay not installed (install ffmpeg)"
-"Status: No audio device (WSL limitation)"
-```
-
-## Performance Characteristics
-
-- **UI Update Rate**: 100ms (10 FPS) for smooth progress tracking
-- **Memory Usage**: Minimal (~50MB base, +file size for loaded audio)
-- **Audio Formats**: Supports 4 major formats (MP3, WAV, OGG, FLAC)
-- **File Size Support**: Tested up to 1GB audio files
-- **Concurrent Operations**: Single-threaded UI with async audio playback
-
-## WSL-Specific Notes
-
-When running on Windows Subsystem for Linux (WSL):
-
-- **Audio Output**: Not available by default (no audio hardware in WSL2)
-- **Workaround 1**: Use ffplay with PulseAudio forwarding (advanced)
-- **Workaround 2**: Run on Windows natively for full audio support
-- **GUI Display**: Works perfectly with X11 forwarding or WSLg
-
-**Status Message on WSL:**
-
-```
-[CRITICAL] [AudioSDL2] Unable to initialize SDL: 'dsp: No such audio device'
-```
-
-This is expected and harmless. The GUI still works fully; only audio output is unavailable.
-
-## Keyboard Shortcuts (Future Feature)
-
-Planned shortcuts for next version:
-
-- `Space`: Play/Pause toggle
-- `Left Arrow`: Previous track
-- `Right Arrow`: Next track
-- `Ctrl+Q`: Quit application
-
-## Troubleshooting
-
-### Audio Not Playing
-
-**Problem:** Click Play but no sound output
-
-**Solutions:**
-
-- Check audio file format is supported (MP3, WAV, OGG, FLAC)
-- Verify file path is correct and file exists
-- Ensure volume slider is not at 0%
-- On Windows/macOS: Check system volume is not muted
-- On Linux: Verify ffplay is installed (`which ffplay`)
-
-**Install ffplay:**
+### Tkinter Issues on Linux
 
 ```bash
-sudo apt-get install ffmpeg
+sudo apt-get install python3-tk
 ```
 
-### GUI Window Won't Open
+### OCR Issues
 
-**Problem:** Kivy window fails to initialize
+Install Tesseract:
 
-**Solutions:**
+```bash
+# Linux
+sudo apt-get install tesseract-ocr
 
-- Update Kivy: `pip install --upgrade kivy`
-- Check all dependencies installed: `pip install kivy`
-- On Linux: Install SDL2 libraries
+# macOS
+brew install tesseract
 
-### Buttons Not Responding
-
-**Problem:** UI controls are unresponsive
-
-**Solutions:**
-
-- Ensure Kivy window is focused (click on window)
-- Try restarting the application
-- Check terminal for error messages
-
-### File Chooser Doesn't Show
-
-**Problem:** "Load Playlist" button does nothing
-
-**Solutions:**
-
-- Kivy popup might be behind main window
-- Try clicking "Load Playlist" again
-- Restart application if issue persists
-
-## Architecture
-
-```
-MusicPlayerApp (Kivy Application)
-│
-├── build() → Creates UI Layout
-│   │
-│   ├── Display Section
-│   │   ├── Title Label ("Music Player")
-│   │   ├── Song Label (Current song name)
-│   │   └── Time Label (MM:SS / MM:SS)
-│   │
-│   ├── Progress Bar (Slider 0-100%)
-│   │
-│   ├── Control Buttons (5 buttons)
-│   │   ├── Previous (⏮)
-│   │   ├── Play (▶)
-│   │   ├── Pause (⏸)
-│   │   ├── Stop (⏹)
-│   │   └── Next (⏭)
-│   │
-│   ├── Volume Control (Slider 0-1.0)
-│   │
-│   ├── Playlist Button (📁 Load Playlist)
-│   │
-│   └── Status Label (Green text)
-│
-├── Audio Playback
-│   ├── ffplay subprocess (Linux/WSL)
-│   ├── Kivy SoundLoader (Windows/macOS)
-│   └── python-vlc (Optional fallback)
-│
-└── Event Loop
-    ├── Clock scheduler (update_progress every 100ms)
-    ├── Button callbacks (on_release events)
-    └── Slider callbacks (value changes)
+# Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
 ```
 
-## Dependencies
+## 📝 License
 
-```
-kivy >= 2.3.0
-```
+This project collection is provided as-is for educational purposes.
 
-**Optional:**
+## 👨‍💻 Contributing
 
-```
-python-vlc >= 3.0.0  (for VLC backend)
-```
+Feel free to enhance these projects by:
 
-## Technologies Used
-
-- **Kivy 2.3.1**: Cross-platform GUI framework
-- **Kivy Core Audio**: Built-in audio playback
-- **FFmpeg/ffplay**: Audio playback on Linux
-- **Python 3.6+**: Programming language
-- **Subprocess**: Process management for ffplay
-
-## Author Notes
-
-This Kivy music player demonstrates:
-
-- ✓ Cross-platform GUI development with Kivy
-- ✓ Event handling and callback functions
-- ✓ Layout management (BoxLayout, GridLayout)
-- ✓ File I/O and path handling with file chooser
-- ✓ Real-time UI updates with Clock scheduler
-- ✓ Audio playback control and selection
-- ✓ Error handling and user feedback
-- ✓ Multiple backend support for audio playback
-- ✓ Platform-specific optimizations
-- ✓ Time formatting utilities (MM:SS)
-- ✓ Process management (subprocess)
-
-## Future Enhancements
-
-📋 **Potential Features:**
-
-1. **Playlist Management**
-
-   - Save/load playlists
-   - Drag-and-drop multiple files
-   - Reorder tracks
-
-2. **Playback Modes**
-
-   - Shuffle mode
-   - Repeat (one/all)
-   - Queue management
-
-3. **Audio Features**
-
-   - Equalizer with presets
-   - Bass/Treble adjustment
-   - Visualization/spectrum analyzer
-
-4. **Metadata Display**
-
-   - ID3 tag reading
-   - Album art display
-   - Artist and album information
-
-5. **User Experience**
-
-   - Keyboard shortcuts
-   - Recent songs history
-   - Theme customization
-   - Mini player mode
-
-6. **Advanced**
-   - Lyrics display
-   - Gapless playback
-   - Crossfade between tracks
-   - Streaming support (Spotify, YouTube Music)
-
-## License
-
-MIT License - Feel free to modify and distribute
+- Adding new features
+- Improving code quality
+- Creating additional project examples
+- Fixing bugs and issues
 
 ---
 
-For more information on Kivy, visit: https://kivy.org/
-
-For FFmpeg/ffplay, visit: https://ffmpeg.org/
+**Last Updated:** December 2025
+=======
+# Trainings
+>>>>>>> tra/main
