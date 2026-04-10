@@ -5,7 +5,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
-import BotDetail from './pages/BotDetail';
+import Reports from './pages/Reports';
+import Trends from './pages/Trends';
 import Login from './pages/Login';
 import './App.css';
 
@@ -27,8 +28,8 @@ function AppLayout() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/bots/:id" element={<BotDetail />} />
-          <Route path="/bots" element={<Dashboard />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/trends" element={<Trends />} />
           <Route path="/settings" element={<Dashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

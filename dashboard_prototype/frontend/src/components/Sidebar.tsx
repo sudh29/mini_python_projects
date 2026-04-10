@@ -5,12 +5,13 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Bot,
-  Activity,
+  FileBarChart,
+  TrendingUp,
   Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Activity,
 } from 'lucide-react';
 import { useState } from 'react';
 import { logout } from '../services/api';
@@ -36,7 +37,8 @@ export default function Sidebar({ username = 'admin@acme' }: SidebarProps) {
         </div>
         {!collapsed && (
           <div className="sidebar__brand-text">
-            <span className="sidebar__title">Jorie AI</span>
+            <span className="sidebar__title">Board Monitor</span>
+            <span className="sidebar__subtitle">Activity Dashboard</span>
           </div>
         )}
         <button
@@ -51,11 +53,15 @@ export default function Sidebar({ username = 'admin@acme' }: SidebarProps) {
       <nav className="sidebar__nav">
         <NavLink to="/" end className="sidebar__link" id="nav-dashboard">
           <LayoutDashboard size={20} />
-          {!collapsed && <span>RCM Dashboard</span>}
+          {!collapsed && <span>Dashboard</span>}
         </NavLink>
-        <NavLink to="/bots" className="sidebar__link" id="nav-bots">
-          <Bot size={20} />
-          {!collapsed && <span>Digital Workers</span>}
+        <NavLink to="/reports" className="sidebar__link" id="nav-reports">
+          <FileBarChart size={20} />
+          {!collapsed && <span>Reports</span>}
+        </NavLink>
+        <NavLink to="/trends" className="sidebar__link" id="nav-trends">
+          <TrendingUp size={20} />
+          {!collapsed && <span>Trends & Metrics</span>}
         </NavLink>
         <NavLink to="/settings" className="sidebar__link" id="nav-settings">
           <Settings size={20} />

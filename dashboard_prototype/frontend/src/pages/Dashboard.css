@@ -1,3 +1,7 @@
+/* ═══════════════════════════════════════════════════════════════
+   Dashboard — Board Activity Home Page
+   ══════════════════════════════════════════════════════════════ */
+
 .dashboard {
   flex: 1;
   display: flex;
@@ -9,7 +13,7 @@
   padding: 28px 32px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
   overflow-y: auto;
   flex: 1;
 }
@@ -34,17 +38,30 @@
   letter-spacing: -0.3px;
 }
 
+.dashboard__section-title--danger {
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .dashboard__section-count {
   font-size: 12px;
   color: var(--text-muted);
   background: var(--muted-bg);
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 20px;
+  font-weight: 600;
+}
+
+.dashboard__section-count--danger {
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .dashboard__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
   gap: 16px;
 }
 
@@ -58,73 +75,91 @@
   font-size: 14px;
 }
 
-.bot-card--skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 20px;
-  pointer-events: none;
+/* ── Failure Details ─────────────────────────────────────────── */
+.dashboard__section--failures {
+  margin-top: 4px;
 }
 
-.dashboard__section--alert .dashboard__section-title {
-  color: var(--danger);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.alert-count {
-  background: var(--danger-bg);
-  color: var(--danger);
-  font-weight: 600;
-}
-
-.hitl-queue {
+.failure-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.hitl-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px;
+.failure-item {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--warning);
+  border-left: 4px solid var(--danger);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.hitl-item__details {
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
+  box-shadow: var(--shadow);
+  transition: all 0.2s;
 }
 
-.hitl-item__details strong {
+.failure-item:hover {
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.08);
+}
+
+.failure-item__header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.failure-item__name {
   font-size: 14px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
-.hitl-item__details span {
+.failure-item__client {
   font-size: 12px;
   color: var(--text-muted);
 }
 
-.hitl-item__action {
-  background: var(--bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+.failure-item__details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.hitl-item__action:hover {
-  background: var(--hover-bg);
+.failure-item__reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.failure-item__reason svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.failure-item__date {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.failure-item__stats {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .dashboard__content {
+    padding: 20px 16px;
+  }
+
+  .dashboard__grid {
+    grid-template-columns: 1fr;
+  }
 }

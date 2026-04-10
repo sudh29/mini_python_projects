@@ -1,0 +1,132 @@
+/* ═══════════════════════════════════════════════════════════════
+   Trends & Metrics Page
+   ══════════════════════════════════════════════════════════════ */
+
+.trends {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.trends__content {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ── Stats Strip ─────────────────────────────────────────────── */
+.trends__stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.trends__stat {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s;
+}
+
+.trends__stat:hover {
+  transform: translateY(-1px);
+}
+
+.trends__stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trends__stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.trends__stat-value--success { color: var(--success); }
+.trends__stat-value--danger { color: var(--danger); }
+
+/* ── Charts Grid ─────────────────────────────────────────────── */
+.trends__charts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.trends__chart-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.25s;
+}
+
+.trends__chart-card:hover {
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.1);
+}
+
+.trends__chart-card--full {
+  grid-column: 1 / -1;
+}
+
+.trends__chart-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.trends__chart-wrapper {
+  width: 100%;
+  min-height: 280px;
+}
+
+/* ── Recharts Overrides ──────────────────────────────────────── */
+.recharts-default-tooltip {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.recharts-legend-item-text {
+  font-size: 12px !important;
+  color: var(--text-secondary) !important;
+}
+
+.recharts-cartesian-grid line {
+  stroke: var(--border) !important;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .trends__charts {
+    grid-template-columns: 1fr;
+  }
+
+  .trends__chart-card--full {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .trends__content {
+    padding: 20px 16px;
+  }
+}

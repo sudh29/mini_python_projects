@@ -1,67 +1,132 @@
 /**
- * Dashboard page — main overview with metrics and bot grid.
+ * Dashboard — Board Activity Home Page.
+ *
+ * Real-time overview of all boards, filtered by client/process.
  */
 
-import { useCallback } from 'react';
+import { useState, useMemo } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import Header from '../components/Header';
-import MetricsPanel from '../components/MetricsPanel';
-import { useApi } from '../hooks/useApi';
-import { useWebSocket } from '../hooks/useWebSocket';
-import { fetchBots, fetchMetrics } from '../services/api';
+import SummaryCards from '../components/SummaryCards';
+import FilterBar from '../components/FilterBar';
+import BoardCard from '../components/BoardCard';
+import type { BoardFilter } from '../types';
+import {
+  getBoards,
+  getBoardMetrics,
+  getFailedBoards,
+} from '../services/boardData';
 import './Dashboard.css';
 
 export default function Dashboard() {
-  const { refetch: refetchBots } = useApi(fetchBots);
-  const { data: metrics, loading: metricsLoading, refetch: refetchMetrics } = useApi(fetchMetrics);
-
-  // WebSocket for real-time updates
-  const { isConnected } = useWebSocket({
-    onStatusUpdate: useCallback(() => {
-      refetchBots();
-      refetchMetrics();
-    }, [refetchBots, refetchMetrics]),
+  const [filter, setFilter] = useState<BoardFilter>({
+    clientId: null,
+    processId: null,
+    status: null,
+    dateRange: 'today',
   });
+
+  const boards = useMemo(() => getBoards(filter), [filter]);
+  const metrics = useMemo(() => getBoardMetrics(filter), [filter]);
+  const failedBoards = useMemo(() => getFailedBoards(filter), [filter]);
+
+  // Group boards by status for display priority: live first, then processing, pending, failed, success
+  const sortedBoards = useMemo(() => {
+    const priority: Record<string, number> = {
+      live: 0,
+      processing: 1,
+      pending: 2,
+      failed: 3,
+      success: 4,
+    };
+    return [...boards].sort((a, b) => (priority[a.status] ?? 5) - (priority[b.status] ?? 5));
+  }, [boards]);
 
   return (
     <div className="dashboard" id="page-dashboard">
       <Header
-        title="Dashboard"
-        subtitle="Bot overview and metrics"
-        isConnected={isConnected}
+        title="Board Activity"
+        subtitle="Live monitoring & real-time status"
       />
 
       <div className="dashboard__content">
+        {/* KPI Summary Cards */}
         <section className="dashboard__section">
-          <h2 className="dashboard__section-title">Revenue Cycle Overview</h2>
-          <MetricsPanel metrics={metrics} loading={metricsLoading} />
+          <SummaryCards metrics={metrics} />
         </section>
 
-        <section className="dashboard__section dashboard__section--alert">
+        {/* Filters */}
+        <section className="dashboard__section">
+          <FilterBar
+            filter={filter}
+            onFilterChange={setFilter}
+            showStatus={true}
+          />
+        </section>
+
+        {/* Board Grid */}
+        <section className="dashboard__section">
           <div className="dashboard__section-header">
-            <h2 className="dashboard__section-title text-danger">Exceptions Requiring Review (HITL)</h2>
-            <span className="dashboard__section-count alert-count">
-              2 pending
+            <h2 className="dashboard__section-title">
+              All Boards
+            </h2>
+            <span className="dashboard__section-count">
+              {boards.length} board{boards.length !== 1 ? 's' : ''}
             </span>
           </div>
-          <div className="hitl-queue">
-            <div className="hitl-item">
-              <div className="hitl-item__details">
-                <strong>Claim Denied - Missing Auth</strong>
-                <span>Bot: Auth Verification #4521</span>
-              </div>
-              <button className="hitl-item__action">Review Now</button>
+
+          {sortedBoards.length > 0 ? (
+            <div className="dashboard__grid">
+              {sortedBoards.map(board => (
+                <BoardCard key={board.id} board={board} />
+              ))}
             </div>
-            <div className="hitl-item">
-              <div className="hitl-item__details">
-                <strong>Payer Portal Timeout</strong>
-                <span>Bot: Claims Submission #9910</span>
-              </div>
-              <button className="hitl-item__action">Review Now</button>
+          ) : (
+            <div className="dashboard__empty">
+              No boards match the current filters.
             </div>
-          </div>
+          )}
         </section>
 
+        {/* Failure Details */}
+        {failedBoards.length > 0 && (
+          <section className="dashboard__section dashboard__section--failures">
+            <div className="dashboard__section-header">
+              <h2 className="dashboard__section-title dashboard__section-title--danger">
+                <AlertTriangle size={18} />
+                Failure Details
+              </h2>
+              <span className="dashboard__section-count dashboard__section-count--danger">
+                {failedBoards.length} failed
+              </span>
+            </div>
 
+            <div className="failure-list">
+              {failedBoards.map(board => (
+                <div key={board.id} className="failure-item">
+                  <div className="failure-item__header">
+                    <strong className="failure-item__name">{board.name}</strong>
+                    <span className="failure-item__client">{board.clientName} — {board.processName}</span>
+                  </div>
+                  <div className="failure-item__details">
+                    <div className="failure-item__reason">
+                      <AlertTriangle size={14} />
+                      <span>{board.failureReason}</span>
+                    </div>
+                    {board.failureDate && (
+                      <span className="failure-item__date">
+                        Failed on: {board.failureDate}
+                      </span>
+                    )}
+                  </div>
+                  <div className="failure-item__stats">
+                    <span>{board.recordsProcessed.toLocaleString()} of {board.recordsTotal.toLocaleString()} records processed</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

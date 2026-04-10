@@ -1,0 +1,230 @@
+/* ═══════════════════════════════════════════════════════════════
+   Reports Page
+   ══════════════════════════════════════════════════════════════ */
+
+.reports {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.reports__content {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ── Controls ────────────────────────────────────────────────── */
+.reports__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reports__toggle-group {
+  display: flex;
+  gap: 8px;
+}
+
+.reports__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reports__toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.reports__toggle--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.reports__toggle--active:hover {
+  color: white;
+}
+
+/* ── Summary ─────────────────────────────────────────────────── */
+.reports__summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.reports__summary-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow);
+}
+
+.reports__summary-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reports__summary-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.reports__summary-card--success .reports__summary-value { color: var(--success); }
+.reports__summary-card--danger .reports__summary-value { color: var(--danger); }
+.reports__summary-card--accent .reports__summary-value { color: var(--accent); }
+
+/* ── Actions ─────────────────────────────────────────────────── */
+.reports__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.reports__download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--accent-gradient);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.3);
+}
+
+.reports__download-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
+}
+
+.reports__download-btn:active {
+  transform: translateY(0);
+}
+
+.reports__row-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── Table ────────────────────────────────────────────────────── */
+.reports__table-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reports__table-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.reports__table-wrapper {
+  overflow-x: auto;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.reports__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.reports__table thead {
+  background: var(--muted-bg);
+}
+
+.reports__table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.reports__table td {
+  padding: 12px 16px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.reports__table tbody tr {
+  transition: background 0.15s;
+}
+
+.reports__table tbody tr:hover {
+  background: var(--hover-bg);
+}
+
+.reports__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.reports__cell--name {
+  font-weight: 600;
+}
+
+.reports__cell--failure {
+  color: var(--danger);
+  max-width: 250px;
+  white-space: normal;
+  font-size: 12px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .reports__content {
+    padding: 20px 16px;
+  }
+
+  .reports__toggle-group {
+    flex-direction: column;
+  }
+
+  .reports__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
