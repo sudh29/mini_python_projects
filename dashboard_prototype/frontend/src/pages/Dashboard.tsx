@@ -24,6 +24,8 @@ export default function Dashboard() {
     processId: null,
     status: null,
     dateRange: 'today',
+    startDate: null,
+    endDate: null,
   });
 
   const boards = useMemo(() => getBoards(filter), [filter]);

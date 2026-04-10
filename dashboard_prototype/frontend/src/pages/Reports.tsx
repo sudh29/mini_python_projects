@@ -28,6 +28,8 @@ export default function Reports() {
     processId: null,
     status: null,
     dateRange: 'today',
+    startDate: null,
+    endDate: null,
   });
   const [isHistorical, setIsHistorical] = useState(false);
 

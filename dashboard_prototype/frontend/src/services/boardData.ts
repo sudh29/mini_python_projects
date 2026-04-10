@@ -65,6 +65,13 @@ function randomBetween(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function diffDays(start: string, end: string): number {
+  const d1 = new Date(start);
+  const d2 = new Date(end);
+  const diffTime = Math.abs(d2.getTime() - d1.getTime());
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+}
+
 const FAILURE_REASONS = [
   'Connection timeout to payer portal after 30s',
   'Invalid date format in source file — expected MM/DD/YYYY',
@@ -223,6 +230,20 @@ export function getBoards(filter?: BoardFilter): Board[] {
     boards = boards.filter(b => b.status === filter.status);
   }
 
+  // Date filtering
+  if (filter?.dateRange) {
+    if (filter.dateRange === 'today') {
+      const todayStr = today();
+      boards = boards.filter(b => b.processingDate === todayStr);
+    } else if (filter.dateRange === 'custom' && filter.startDate && filter.endDate) {
+      boards = boards.filter(b => b.processingDate >= filter.startDate! && b.processingDate <= filter.endDate!);
+    } else if (filter.dateRange !== 'custom') {
+      const days = filter.dateRange === '7d' ? 7 : filter.dateRange === '30d' ? 30 : 90;
+      const cutoff = daysAgoStr(days);
+      boards = boards.filter(b => b.processingDate >= cutoff);
+    }
+  }
+
   return boards;
 }
 
@@ -258,16 +279,28 @@ export function getFailedBoards(filter?: BoardFilter): Board[] {
   return getBoards(filter).filter(b => b.status === 'failed');
 }
 
-export function getHistoricalData(range: BoardFilter['dateRange']): HistoricalDataPoint[] {
-  const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : 1;
+export function getHistoricalData(filter: BoardFilter): HistoricalDataPoint[] {
+  let days = 1;
+  if (filter.dateRange === 'custom' && filter.startDate && filter.endDate) {
+    days = diffDays(filter.startDate, filter.endDate);
+  } else if (filter.dateRange !== 'custom') {
+    days = filter.dateRange === '7d' ? 7 : filter.dateRange === '30d' ? 30 : filter.dateRange === '90d' ? 90 : 1;
+  }
+
   if (!_cachedHistory || _cachedHistory.length !== days) {
     _cachedHistory = generateHistoricalData(days);
   }
   return _cachedHistory;
 }
 
-export function getClientTrends(range: BoardFilter['dateRange']): ClientTrendPoint[] {
-  const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : 1;
+export function getClientTrends(filter: BoardFilter): ClientTrendPoint[] {
+  let days = 1;
+  if (filter.dateRange === 'custom' && filter.startDate && filter.endDate) {
+    days = diffDays(filter.startDate, filter.endDate);
+  } else if (filter.dateRange !== 'custom') {
+    days = filter.dateRange === '7d' ? 7 : filter.dateRange === '30d' ? 30 : filter.dateRange === '90d' ? 90 : 1;
+  }
+
   if (!_cachedClientTrends || _cachedClientTrends.length !== days * CLIENTS.length) {
     _cachedClientTrends = generateClientTrends(days);
   }

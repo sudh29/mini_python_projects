@@ -29,6 +29,7 @@ const DATE_RANGE_OPTIONS: { value: BoardFilter['dateRange']; label: string }[] =
   { value: '7d', label: 'Last 7 Days' },
   { value: '30d', label: 'Last 30 Days' },
   { value: '90d', label: 'Last 90 Days' },
+  { value: 'custom', label: 'Custom Range' },
 ];
 
 export default function FilterBar({
@@ -52,7 +53,7 @@ export default function FilterBar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter.clientId]);
 
-  const hasAnyFilter = filter.clientId || filter.processId || filter.status;
+  const hasAnyFilter = filter.clientId || filter.processId || filter.status || (filter.dateRange === 'custom' && (filter.startDate || filter.endDate));
 
   const clearFilters = () => {
     onFilterChange({
@@ -60,6 +61,8 @@ export default function FilterBar({
       processId: null,
       status: null,
       dateRange: filter.dateRange,
+      startDate: null,
+      endDate: null,
     });
   };
 
@@ -117,19 +120,46 @@ export default function FilterBar({
       )}
 
       {showDateRange && (
-        <select
-          className="filter-bar__select filter-bar__select--date"
-          id="filter-date-range"
-          value={filter.dateRange}
-          onChange={e => onFilterChange({
-            ...filter,
-            dateRange: e.target.value as BoardFilter['dateRange'],
-          })}
-        >
-          {DATE_RANGE_OPTIONS.map(d => (
-            <option key={d.value} value={d.value}>{d.label}</option>
-          ))}
-        </select>
+        <div className="filter-bar__date-group">
+          <select
+            className="filter-bar__select filter-bar__select--date"
+            id="filter-date-range"
+            value={filter.dateRange}
+            onChange={e => onFilterChange({
+              ...filter,
+              dateRange: e.target.value as BoardFilter['dateRange'],
+              // Reset custom dates if switching away from custom
+              ...(e.target.value !== 'custom' ? { startDate: null, endDate: null } : {})
+            })}
+          >
+            {DATE_RANGE_OPTIONS.map(d => (
+              <option key={d.value} value={d.value}>{d.label}</option>
+            ))}
+          </select>
+
+          {filter.dateRange === 'custom' && (
+            <div className="filter-bar__custom-dates">
+              <div className="filter-bar__date-input-wrapper">
+                <span className="filter-bar__date-label">From:</span>
+                <input
+                  type="date"
+                  className="filter-bar__date-input"
+                  value={filter.startDate || ''}
+                  onChange={e => onFilterChange({ ...filter, startDate: e.target.value })}
+                />
+              </div>
+              <div className="filter-bar__date-input-wrapper">
+                <span className="filter-bar__date-label">To:</span>
+                <input
+                  type="date"
+                  className="filter-bar__date-input"
+                  value={filter.endDate || ''}
+                  onChange={e => onFilterChange({ ...filter, endDate: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {hasAnyFilter && (

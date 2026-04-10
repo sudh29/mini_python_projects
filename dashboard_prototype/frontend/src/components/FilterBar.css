@@ -76,7 +76,59 @@
   border-color: var(--danger);
 }
 
+/* ── Custom Dates ────────────────────────────────────────────── */
+.filter-bar__date-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-bar__custom-dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--muted-bg);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.filter-bar__date-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.filter-bar__date-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.filter-bar__date-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: var(--font);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.filter-bar__date-input:focus {
+  border-color: var(--accent);
+}
+
 /* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .filter-bar__date-group {
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .filter-bar {
     flex-direction: column;
@@ -85,6 +137,11 @@
 
   .filter-bar__select {
     min-width: 100%;
+  }
+
+  .filter-bar__custom-dates {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .filter-bar__clear {

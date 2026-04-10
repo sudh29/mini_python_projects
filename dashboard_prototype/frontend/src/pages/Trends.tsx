@@ -34,10 +34,12 @@ export default function Trends() {
     processId: null,
     status: null,
     dateRange: '30d',
+    startDate: null,
+    endDate: null,
   });
 
-  const historicalData = useMemo(() => getHistoricalData(filter.dateRange), [filter.dateRange]);
-  const clientTrends = useMemo(() => getClientTrends(filter.dateRange), [filter.dateRange]);
+  const historicalData = useMemo(() => getHistoricalData(filter), [filter.dateRange, filter.startDate, filter.endDate]);
+  const clientTrends = useMemo(() => getClientTrends(filter), [filter.dateRange, filter.startDate, filter.endDate]);
   const clients = getClients();
   const metrics = useMemo(() => getBoardMetrics(filter), [filter]);
 
