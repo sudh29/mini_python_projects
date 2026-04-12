@@ -132,3 +132,16 @@ def require_role(required: UserRole):
             )
         return user
     return _check
+
+
+# ── Internal Worker Auth ─────────────────────────────────────────
+async def verify_worker_key(
+    x_api_key: Annotated[Optional[str], Header(alias="X-API-Key")] = None,
+) -> str:
+    """ Ensure the request is coming from a trusted worker. """
+    if not x_api_key or x_api_key != settings.INTERNAL_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing worker API key",
+        )
+    return x_api_key

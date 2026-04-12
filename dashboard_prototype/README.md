@@ -6,39 +6,41 @@ A production-grade platform for orchestrating and monitoring Python-based automa
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        React Dashboard                          │
-│                     (frontend/ — Vite + TS)                     │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ REST + WebSocket
-┌──────────────────────────▼──────────────────────────────────────┐
-│                    FastAPI Control Plane                         │
-│                   (backend/ — Python 3.14)                       │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │
-│  │ REST API │  │WebSocket │  │   Auth   │  │  Prometheus    │  │
-│  │ /api/*   │  │ /ws/*    │  │  (JWT)   │  │  /metrics      │  │
-│  └──────────┘  └──────────┘  └──────────┘  └────────────────┘  │
-└────────┬───────────────────────────┬────────────────────────────┘
-         │                           │
-    ┌────▼────┐                 ┌────▼────┐
-    │ PostgreSQL│               │  Redis  │
-    │ (Database)│               │ (Broker)│
-    └─────────┘                 └────┬────┘
-                                     │ Celery
-                            ┌────────▼────────┐
-                            │  Bot Workers     │
-                            │ (worker/ — VMs)  │
-                            │                  │
-                            │ Selenium/PyAutoGUI│
-                            └──────────────────┘
-                                     │
-                            ┌────────▼────────┐
-                            │  Observability   │
-                            │ (monitoring/)    │
-                            │ Prometheus       │
-                            │ + Grafana        │
-                            └──────────────────┘
+See the dedicated diagram: [docs/architecture.md](./docs/architecture.md)
+
+```mermaid
+flowchart LR
+    user[Operations User]
+
+    subgraph browser[Browser]
+        frontend[React Dashboard<br/>frontend/]
+    end
+
+    subgraph control[FastAPI Control Plane<br/>backend/]
+        api[REST API + Auth + Metrics]
+        ws[WebSocket Manager]
+        internal[Internal Worker Endpoints]
+    end
+
+    db[(PostgreSQL / SQLite)]
+    redis[(Redis)]
+    worker[Celery Worker<br/>backend/app/tasks]
+    artifacts[(Artifact Storage)]
+    prom[Prometheus]
+    graf[Grafana]
+
+    user --> frontend
+    frontend -->|REST| api
+    frontend <-->|WebSocket| ws
+    api --> db
+    api -->|enqueue tasks| redis
+    worker -->|consume queue| redis
+    worker -->|status + logs| internal
+    internal --> db
+    worker -. screenshots .-> artifacts
+    api <-->|serve files| artifacts
+    prom -->|scrape /metrics| api
+    graf --> prom
 ```
 
 ---
@@ -86,7 +88,7 @@ Comprehensive monitoring using **Prometheus** and **Grafana**:
 | Monitoring | Prometheus + Grafana |
 | Auth | JWT (Bearer) + API Key |
 | Package Manager | uv (Python), npm (Node.js) |
-| Deployment | VMs (current) → Docker + Kubernetes (planned) |
+| Deployment | Docker Compose (current) → Kubernetes (planned) |
 
 ---
 
@@ -122,17 +124,17 @@ npm run dev                    # http://localhost:5173
 ### 3. Worker (requires Redis)
 
 ```bash
-cd worker
+cd backend
 uv venv --python 3.14
 source .venv/bin/activate
 uv pip install -r requirements.txt
-celery -A celery_worker.celery_app worker --loglevel=info --queues=bots
+celery -A app.celery_app:celery_app worker --loglevel=info --queues=bots
 ```
 
 ### 4. Monitoring (Docker)
 
 ```bash
-cd frontend
+# from the repository root
 docker compose up prometheus grafana -d
 # Prometheus: http://localhost:9090
 # Grafana:    http://localhost:3001 (admin/admin)
@@ -147,7 +149,7 @@ User clicks "Run Bot" (React)
   → FastAPI validates request + checks auth
   → BotRun record created in PostgreSQL (status: pending)
   → Task enqueued in Celery via Redis
-  → Worker VM picks up task
+  → Celery worker picks up task
   → Bot executes (Selenium/PyAutoGUI)
   → Logs + screenshots pushed to control plane
   → Status updated in PostgreSQL + Redis

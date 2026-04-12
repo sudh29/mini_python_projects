@@ -54,6 +54,8 @@ services:
       SECRET_KEY: "docker-dev-secret-key"
       CORS_ORIGINS: '["http://localhost:5173","http://localhost:3000"]'
       ARTIFACT_STORAGE_PATH: "/app/artifacts"
+      INTERNAL_API_BASE: "http://api:8000"
+      INTERNAL_API_KEY: "internal-worker-key"
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,6 +76,8 @@ services:
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/1"
       CELERY_RESULT_BACKEND: "redis://redis:6379/2"
+      INTERNAL_API_BASE: "http://api:8000"
+      INTERNAL_API_KEY: "internal-worker-key"
     depends_on:
       postgres:
         condition: service_healthy
@@ -105,6 +109,19 @@ services:
     volumes:
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
       - grafana_data:/var/lib/grafana
+
+  # ── React Dashboard ──────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rpa-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    environment:
+      - VITE_API_BASE=http://localhost:8000
 
 volumes:
   postgres_data:
