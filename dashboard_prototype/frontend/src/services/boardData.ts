@@ -1,5 +1,5 @@
 /**
- * Board Activity Monitoring — Dummy Data Service
+ * Dashboard Monitoring — Dummy Data Service
  *
  * Provides realistic client/process/board data for the dashboard.
  * Structured to mirror a real API so swapping to live endpoints is trivial.

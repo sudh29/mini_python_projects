@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     )
 
     # ── Application ──────────────────────────────────────────────
-    APP_NAME: str = "RPA Orchestration Platform"
+    APP_NAME: str = "Jorie AI"
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = True
 

@@ -1,4 +1,4 @@
-# 🤖 RPA Orchestration & Monitoring Platform
+# 🤖 Jorie AI — RPA Orchestration & Monitoring
 
 A production-grade platform for orchestrating and monitoring Python-based automation bots (Selenium / PyAutoGUI) across virtual machines. Supports multi-tenant deployments with real-time dashboards, centralized logging, and observability.
 

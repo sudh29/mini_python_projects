@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="RPA Orchestration & Monitoring Control Plane",
+    description="Jorie AI — RPA Orchestration & Monitoring Control Plane",
     lifespan=lifespan,
 )
 

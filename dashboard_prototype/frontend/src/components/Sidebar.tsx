@@ -1,8 +1,5 @@
-/**
- * Sidebar navigation component.
- */
-
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileBarChart,
@@ -15,15 +12,12 @@ import {
   Moon,
   Sun,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { logout } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
 
-interface SidebarProps {
-  username?: string;
-}
-
-export default function Sidebar({ username = 'admin@acme' }: SidebarProps) {
+export default function Sidebar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     return localStorage.getItem('theme') === 'dark' || 
@@ -44,34 +38,41 @@ export default function Sidebar({ username = 'admin@acme' }: SidebarProps) {
 
   const handleLogout = () => {
     logout();
-    window.location.href = '/login';
+    navigate('/login');
   };
+
+  const username = user?.username || 'admin';
+
 
   return (
     <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`} id="sidebar">
-      <div className="sidebar__brand">
+      <NavLink to="/" className="sidebar__brand" end>
         <div className="sidebar__logo">
           <Activity size={24} />
         </div>
         {!collapsed && (
           <div className="sidebar__brand-text">
-            <span className="sidebar__title">Board Monitor</span>
-            <span className="sidebar__subtitle">Activity Dashboard</span>
+            <span className="sidebar__title">Jorie AI</span>
+            <span className="sidebar__subtitle">Orchestration & Analytics</span>
           </div>
         )}
         <button
           className="sidebar__toggle"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setCollapsed(!collapsed);
+          }}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
-      </div>
+      </NavLink>
 
       <nav className="sidebar__nav">
         <NavLink to="/" end className="sidebar__link" id="nav-dashboard">
           <LayoutDashboard size={20} />
-          {!collapsed && <span>Dashboard</span>}
+          {!collapsed && <span>Activity Dashboard</span>}
         </NavLink>
         <NavLink to="/reports" className="sidebar__link" id="nav-reports">
           <FileBarChart size={20} />

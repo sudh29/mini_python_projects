@@ -32,59 +32,87 @@ async def list_bots_with_status(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[CurrentUser, Depends(get_current_user)],
 ):
-    """List all bots for the current client with their runtime status."""
-    # Get bots
-    result = await db.execute(
-        select(Bot).where(
+    """List all bots for the current client with their runtime status in a single query."""
+    
+    # 1. Total stats for each bot (Subquery)
+    stats_sub = (
+        select(
+            BotRun.bot_id,
+            func.count(BotRun.id).label("total_runs"),
+            func.sum(case((BotRun.status == RunStatus.SUCCESS, 1), else_=0)).label("success_count"),
+        )
+        .where(BotRun.client_id == user.client_id)
+        .group_by(BotRun.bot_id)
+        .subquery()
+    )
+
+    # 2. Latest run for each bot (Subquery using window function)
+    latest_sub = (
+        select(
+            BotRun.bot_id,
+            BotRun.status.label("latest_status"),
+            BotRun.start_time.label("last_run_at"),
+            func.row_number().over(
+                partition_by=BotRun.bot_id,
+                order_by=BotRun.created_at.desc()
+            ).label("rn")
+        )
+        .where(BotRun.client_id == user.client_id)
+        .subquery()
+    )
+
+    # 3. Currently active run for each bot (Subquery using window function)
+    active_sub = (
+        select(
+            BotRun.bot_id,
+            BotRun.id.label("active_run_id"),
+            BotRun.status.label("active_status"),
+            func.row_number().over(
+                partition_by=BotRun.bot_id,
+                order_by=BotRun.created_at.desc()
+            ).label("rn")
+        )
+        .where(
+            BotRun.client_id == user.client_id,
+            BotRun.status.in_([RunStatus.RUNNING, RunStatus.PENDING])
+        )
+        .subquery()
+    )
+
+    # 4. Final join query
+    stmt = (
+        select(
+            Bot,
+            stats_sub.c.total_runs,
+            stats_sub.c.success_count,
+            latest_sub.c.latest_status,
+            latest_sub.c.last_run_at,
+            active_sub.c.active_run_id,
+            active_sub.c.active_status,
+        )
+        .outerjoin(stats_sub, Bot.id == stats_sub.c.bot_id)
+        .outerjoin(latest_sub, (Bot.id == latest_sub.c.bot_id) & (latest_sub.c.rn == 1))
+        .outerjoin(active_sub, (Bot.id == active_sub.c.bot_id) & (active_sub.c.rn == 1))
+        .where(
             Bot.client_id == user.client_id,
             Bot.is_active == True,
-        ).order_by(Bot.name)
+        )
+        .order_by(Bot.name)
     )
-    bots = result.scalars().all()
 
+    result = await db.execute(stmt)
+    
     enriched = []
-    for bot in bots:
-        # Get run stats
-        stats_q = await db.execute(
-            select(
-                func.count(BotRun.id).label("total"),
-                func.sum(
-                    case(
-                        (BotRun.status == RunStatus.SUCCESS, 1),
-                        else_=0,
-                    )
-                ).label("successes"),
-            ).where(BotRun.bot_id == bot.id)
-        )
-        stats = stats_q.one()
-        total = stats.total or 0
-        successes = stats.successes or 0
-
-        # Get latest run
-        latest_q = await db.execute(
-            select(BotRun)
-            .where(BotRun.bot_id == bot.id)
-            .order_by(BotRun.created_at.desc())
-            .limit(1)
-        )
-        latest_run = latest_q.scalar_one_or_none()
-
-        # Check for active run
-        active_q = await db.execute(
-            select(BotRun)
-            .where(
-                BotRun.bot_id == bot.id,
-                BotRun.status.in_([RunStatus.RUNNING, RunStatus.PENDING]),
-            )
-            .limit(1)
-        )
-        active_run = active_q.scalar_one_or_none()
-
-        # Determine current status
-        if active_run:
-            current_status = active_run.status.value
-        elif latest_run:
-            current_status = latest_run.status.value
+    for row in result.mappings():
+        bot = row["Bot"]
+        total = row["total_runs"] or 0
+        successes = row["success_count"] or 0
+        
+        # Determine status: active overrides latest
+        if row["active_run_id"]:
+            current_status = row["active_status"].value
+        elif row["latest_status"]:
+            current_status = row["latest_status"].value
         else:
             current_status = "idle"
 
@@ -99,13 +127,14 @@ async def list_bots_with_status(
             created_at=bot.created_at,
             updated_at=bot.updated_at,
             current_status=current_status,
-            last_run_at=latest_run.start_time if latest_run else None,
+            last_run_at=row["last_run_at"],
             total_runs=total,
             success_rate=round(successes / total * 100, 1) if total > 0 else 0.0,
-            active_run_id=active_run.id if active_run else None,
+            active_run_id=row["active_run_id"],
         ))
 
     return enriched
+
 
 
 # ── GET /api/bots/{bot_id} ───────────────────────────────────────

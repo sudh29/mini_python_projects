@@ -1,5 +1,5 @@
 /**
- * Core TypeScript types for the Board Activity Monitoring Dashboard.
+ * Core TypeScript types for the Dashboard Monitoring Platform.
  */
 
 // ── Board Types ─────────────────────────────────────────────────

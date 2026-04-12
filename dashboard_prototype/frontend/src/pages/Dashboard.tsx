@@ -47,7 +47,7 @@ export default function Dashboard() {
   return (
     <div className="dashboard" id="page-dashboard">
       <Header
-        title="Board Activity"
+        title="Activity Dashboard"
         subtitle="Live monitoring & real-time status"
       />
 

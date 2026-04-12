@@ -23,7 +23,14 @@
   padding: 20px 16px;
   border-bottom: 1px solid var(--border);
   position: relative;
+  text-decoration: none;
+  transition: background 0.2s;
 }
+
+.sidebar__brand:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
 
 .sidebar__logo {
   width: 36px;

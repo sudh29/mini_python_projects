@@ -103,49 +103,60 @@ async function apiFetch<T>(
   return response.json();
 }
 
+// ── Helpers ─────────────────────────────────────────────────────
+/**
+ * Executes an API call with an automatic fallback to dummy data if in Demo Mode.
+ */
+async function withFallback<T>(
+  dummyFn: () => T | Promise<T> | T,
+  apiFn: () => Promise<T>
+): Promise<T> {
+  if (await isDemoMode()) return dummyFn();
+  return apiFn();
+}
+
 // ── Auth ─────────────────────────────────────────────────────────
 export async function login(username: string, password: string): Promise<LoginResponse> {
-  // Demo mode: accept known dev credentials
-  if (await isDemoMode()) {
-    if (
-      (username === 'admin' && password === 'admin') ||
-      (username === 'viewer' && password === 'viewer')
-    ) {
-      const demoUser = {
-        id: 'demo-user-001',
-        username,
-        role: username.startsWith('admin') ? ('admin' as const) : ('viewer' as const),
-        client_id: 'c1000000-0000-0000-0000-000000000001',
-      };
-      const resp: LoginResponse = {
-        access_token: 'demo-token',
-        token_type: 'bearer',
-        user: demoUser,
-      };
-      setAuthToken(resp.access_token);
-      localStorage.setItem('rpa_user', JSON.stringify(demoUser));
-      return resp;
+  return withFallback(
+    async () => {
+      if (
+        (username === 'admin' && password === 'admin') ||
+        (username === 'viewer' && password === 'viewer')
+      ) {
+        const demoUser = {
+          id: 'demo-user-001',
+          username,
+          role: username.startsWith('admin') ? ('admin' as const) : ('viewer' as const),
+          client_id: 'c1000000-0000-0000-0000-000000000001',
+        };
+        const resp: LoginResponse = {
+          access_token: 'demo-token',
+          token_type: 'bearer',
+          user: demoUser,
+        };
+        setAuthToken(resp.access_token);
+        return resp;
+      }
+      throw new Error('Invalid credentials');
+    },
+    async () => {
+      const formData = new URLSearchParams();
+      formData.append('username', username);
+      formData.append('password', password);
+
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Invalid credentials');
+      
+      const data: LoginResponse = await response.json();
+      setAuthToken(data.access_token);
+      return data;
     }
-    throw new Error('Invalid credentials');
-  }
-
-  const formData = new URLSearchParams();
-  formData.append('username', username);
-  formData.append('password', password);
-
-  const response = await fetch(`${API_BASE}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error('Invalid credentials');
-  }
-
-  const data: LoginResponse = await response.json();
-  setAuthToken(data.access_token);
-  return data;
+  );
 }
 
 export function logout() {
@@ -155,93 +166,112 @@ export function logout() {
 
 // ── Bots ─────────────────────────────────────────────────────────
 export async function fetchBots(): Promise<Bot[]> {
-  if (await isDemoMode()) return getDummyBots();
-  return apiFetch<Bot[]>('/api/bots/status');
+  return withFallback(
+    () => getDummyBots(),
+    () => apiFetch<Bot[]>('/api/bots/status')
+  );
 }
 
 export async function fetchBot(botId: string): Promise<Bot> {
-  if (await isDemoMode()) {
-    const bot = getDummyBot(botId);
-    if (!bot) throw new Error('Bot not found');
-    return bot;
-  }
-  // Use the status endpoint and filter
-  const bots = await fetchBots();
-  const bot = bots.find(b => b.id === botId);
-  if (!bot) throw new Error('Bot not found');
-  return bot;
+  return withFallback(
+    () => {
+      const bot = getDummyBot(botId);
+      if (!bot) throw new Error('Bot not found');
+      return bot;
+    },
+    async () => {
+      const bots = await fetchBots();
+      const bot = bots.find(b => b.id === botId);
+      if (!bot) throw new Error('Bot not found');
+      return bot;
+    }
+  );
 }
 
 export async function runBot(botId: string, parameters?: Record<string, unknown>): Promise<BotRun> {
-  if (await isDemoMode()) {
-    // Simulate a run start in demo mode
-    const now = new Date().toISOString();
-    return {
-      id: `demo-run-${Date.now()}`,
-      bot_id: botId,
-      client_id: 'c1000000-0000-0000-0000-000000000001',
-      celery_task_id: `demo-task-${Date.now()}`,
-      status: 'pending',
-      start_time: now,
-      end_time: null,
-      error_message: null,
-      retry_count: 0,
-      artifacts_path: null,
-      created_at: now,
-    };
-  }
-  return apiFetch<BotRun>('/api/bots/run', {
-    method: 'POST',
-    body: JSON.stringify({ bot_id: botId, parameters }),
-  });
+  return withFallback(
+    () => {
+      const now = new Date().toISOString();
+      return {
+        id: `demo-run-${Date.now()}`,
+        bot_id: botId,
+        client_id: 'c1000000-0000-0000-0000-000000000001',
+        celery_task_id: `demo-task-${Date.now()}`,
+        status: 'pending',
+        start_time: now,
+        end_time: null,
+        error_message: null,
+        retry_count: 0,
+        artifacts_path: null,
+        created_at: now,
+      };
+    },
+    () => apiFetch<BotRun>('/api/bots/run', {
+      method: 'POST',
+      body: JSON.stringify({ bot_id: botId, parameters }),
+    })
+  );
 }
 
 export async function stopBot(botId: string, runId?: string): Promise<{ status: string; run_id: string }> {
-  if (await isDemoMode()) {
-    return { status: 'cancelled', run_id: runId || `demo-run-${Date.now()}` };
-  }
-  return apiFetch('/api/bots/stop', {
-    method: 'POST',
-    body: JSON.stringify({ bot_id: botId, run_id: runId }),
-  });
+  return withFallback(
+    () => ({ status: 'cancelled', run_id: runId || `demo-run-${Date.now()}` }),
+    () => apiFetch('/api/bots/stop', {
+      method: 'POST',
+      body: JSON.stringify({ bot_id: botId, run_id: runId }),
+    })
+  );
 }
 
 // ── Bot Runs ─────────────────────────────────────────────────────
 export async function fetchBotRuns(botId: string, limit = 20, offset = 0): Promise<BotRunList> {
-  if (await isDemoMode()) return getDummyBotRuns(botId, limit, offset);
-  return apiFetch<BotRunList>(`/api/bots/${botId}/runs?limit=${limit}&offset=${offset}`);
+  return withFallback(
+    () => getDummyBotRuns(botId, limit, offset),
+    () => apiFetch<BotRunList>(`/api/bots/${botId}/runs?limit=${limit}&offset=${offset}`)
+  );
 }
 
 // ── Logs ─────────────────────────────────────────────────────────
 export async function fetchLogs(runId: string, level?: string): Promise<LogList> {
-  if (await isDemoMode()) {
-    const data = getDummyLogs(runId);
-    if (level) {
-      const filtered = data.logs.filter(l => l.level === level);
-      return { logs: filtered, total: filtered.length };
+  return withFallback(
+    () => {
+      const data = getDummyLogs(runId);
+      if (level) {
+        const filtered = data.logs.filter(l => l.level === level);
+        return { logs: filtered, total: filtered.length };
+      }
+      return data;
+    },
+    () => {
+      const params = new URLSearchParams();
+      if (level) params.set('level', level);
+      const qs = params.toString();
+      return apiFetch<LogList>(`/api/logs/${runId}${qs ? `?${qs}` : ''}`);
     }
-    return data;
-  }
-  const params = new URLSearchParams();
-  if (level) params.set('level', level);
-  const qs = params.toString();
-  return apiFetch<LogList>(`/api/logs/${runId}${qs ? `?${qs}` : ''}`);
+  );
 }
 
 // ── Screenshots ──────────────────────────────────────────────────
 export async function fetchScreenshots(runId: string): Promise<{ screenshots: Screenshot[]; run_id: string }> {
-  if (await isDemoMode()) return getDummyScreenshots(runId);
-  return apiFetch(`/api/screenshots/${runId}`);
+  return withFallback(
+    () => getDummyScreenshots(runId),
+    () => apiFetch(`/api/screenshots/${runId}`)
+  );
 }
 
 // ── Metrics ──────────────────────────────────────────────────────
 export async function fetchMetrics(): Promise<DashboardMetrics> {
-  if (await isDemoMode()) return getDummyMetrics();
-  return apiFetch<DashboardMetrics>('/api/metrics');
+  return withFallback(
+    () => getDummyMetrics(),
+    () => apiFetch<DashboardMetrics>('/api/metrics')
+  );
 }
 
 // ── Health ───────────────────────────────────────────────────────
 export async function checkHealth(): Promise<{ status: string; version: string }> {
-  if (await isDemoMode()) return { status: 'demo', version: '0.1.0-demo' };
-  return apiFetch('/api/health');
+  return withFallback(
+    () => ({ status: 'demo', version: '0.1.0-demo' }),
+    () => apiFetch('/api/health')
+  );
 }
+

@@ -1,17 +1,14 @@
-/**
- * Login page — simple auth form.
- */
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, CheckCircle2, Moon, Sun } from 'lucide-react';
-import { login } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import botLogo from '../assets/JORIE_BOT.png';
 import companyLogo from '../assets/jorie.png';
 import './Login.css';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,8 +38,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await login(username, password);
-      localStorage.setItem('rpa_user', JSON.stringify(res.user));
+      await login(username, password);
       navigate('/');
     } catch {
       setError('Invalid credentials. Try admin / admin');
@@ -50,6 +46,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="login-container" id="page-login">

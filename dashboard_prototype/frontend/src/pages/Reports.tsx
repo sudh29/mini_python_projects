@@ -53,7 +53,7 @@ export default function Reports() {
     <div className="reports" id="page-reports">
       <Header
         title="Reports"
-        subtitle="Generate and download board activity reports"
+        subtitle="Generate and download dashboard reports"
       />
 
       <div className="reports__content">
