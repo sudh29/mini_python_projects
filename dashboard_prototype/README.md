@@ -43,24 +43,34 @@ A production-grade platform for orchestrating and monitoring Python-based automa
 
 ---
 
-## Project Structure
+| Directory | Description | Documentation |
+|-----------|-------------|---------------|
+| [`backend/`](./backend/) | FastAPI API server, database models, auth, and Celery tasks | [Backend README](./backend/README.md) |
+| [`frontend/`](./frontend/) | React + Vite + TypeScript dashboard with real-time updates | [Frontend README](./frontend/README.md) |
+| [`monitoring/`](./monitoring/) | Prometheus scrape config and Grafana dashboard definitions | [Monitoring README](./monitoring/README.md) |
 
-```
-dashboard_prototype/
-├── backend/           → FastAPI control plane + Celery tasks
-├── frontend/          → React dashboard (Vite + TypeScript)
-├── worker/            → Celery workers & bot scripts
-├── monitoring/        → Prometheus + Grafana configs
-├── .gitignore
-└── README.md          → You are here
-```
+---
 
-| Directory | Description | README |
-|-----------|-------------|--------|
-| [`backend/`](./backend/) | FastAPI API server, database models, auth, Celery integration | [backend/README.md](./backend/README.md) |
-| [`frontend/`](./frontend/) | React + Vite + TypeScript dashboard with real-time updates | [frontend/README.md](./frontend/README.md) |
-| [`worker/`](./worker/) | Celery worker processes, bot scripts, and execution utilities | [worker/README.md](./worker/README.md) |
-| [`monitoring/`](./monitoring/) | Prometheus scrape config and Grafana dashboard definitions | [monitoring/README.md](./monitoring/README.md) |
+## 🏗️ Core Components
+
+### [⚙️ Backend Control Plane](./backend/README.md)
+The brain of the operation, built with **FastAPI**. It handles:
+- **REST API**: Secure endpoints for bot management and monitoring.
+- **WebSocket**: Real-time status updates pushed to the dashboard.
+- **Task Queue**: Dispatches work to Celery workers (currently integrated in the backend codebase).
+- **Database**: Multi-tenant PostgreSQL schema with SQLAlchemy.
+
+### [🎨 React Dashboard](./frontend/README.md)
+A premium, clinical-grade interface for managing RPA operations:
+- **Real-time Monitoring**: Live status badges and log streams.
+- **Data Visualization**: Integrated metrics for success rates and run durations.
+- **Responsive Design**: Modern UI with dark mode and glassmorphic elements.
+
+### [📊 Observability Stack](./monitoring/README.md)
+Comprehensive monitoring using **Prometheus** and **Grafana**:
+- **Custom Metrics**: Specialized RPA metrics (runs, failures, durations).
+- **Dashboards**: Pre-configured Grafana views for operational oversight.
+- **Alerting**: (Planned) Proactive notifications for bot anomalies.
 
 ---
 

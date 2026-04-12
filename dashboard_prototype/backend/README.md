@@ -127,6 +127,5 @@ Roles: `admin` (full access), `viewer` (read-only)
 
 ## Related
 
-- [Frontend README](../frontend/README.md) — React dashboard
-- [Worker README](../worker/README.md) — Celery bot workers
-- [Monitoring README](../monitoring/README.md) — Prometheus + Grafana
+- [Frontend Documentation](../frontend/README.md) — React dashboard
+- [Monitoring Documentation](../monitoring/README.md) — Prometheus + Grafana

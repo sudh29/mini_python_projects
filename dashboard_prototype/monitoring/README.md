@@ -139,6 +139,5 @@ Future alerting rules to be added:
 
 ## Related
 
-- [Backend README](../backend/README.md) — FastAPI control plane (exposes `/metrics`)
-- [Frontend README](../frontend/README.md) — React dashboard
-- [Worker README](../worker/README.md) — Celery bot workers
+- [Backend Documentation](../backend/README.md) — FastAPI control plane (exposes `/metrics`)
+- [Frontend Documentation](../frontend/README.md) — React dashboard
