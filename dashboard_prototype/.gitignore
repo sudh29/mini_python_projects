@@ -12,6 +12,11 @@ dist-ssr/
 .env.test.local
 .env.production.local
 
+# Vite / Vitest / Turbo
+.vite/
+.vercel/
+.turbo/
+
 # ── Backend (Python/FastAPI) ──────────────────────────────────
 __pycache__/
 *.py[cod]
@@ -20,6 +25,7 @@ __pycache__/
 *.egg-info/
 *.egg
 .eggs/
+pip-wheel-metadata/
 
 # Virtual environments
 .venv/
@@ -29,27 +35,36 @@ env/
 
 # uv
 .python-version
+# uv.lock is usually tracked, but keep it here for reference
+# uv.lock
 
 # SQLite databases (dev only)
 *.db
 *.sqlite3
+!test_*.db
 
 # Alembic
-alembic/versions/__pycache__/
-
-# ── Worker ────────────────────────────────────────────────────
-worker/__pycache__/
-worker/bots/**/__pycache__/
+backend/alembic/versions/__pycache__/
 
 # ── Artifacts & Storage ──────────────────────────────────────
+# Ignore all generated artifacts and screenshots
 artifacts/
 screenshots/
+**/artifacts/
+**/screenshots/
+
+# Media ignorals (runtime generated)
 *.png
 *.jpg
 *.jpeg
 *.webp
-!frontend/public/**/*.png
-!frontend/public/**/*.svg
+*.gif
+*.bmp
+*.tiff
+
+# Exceptions for developer-curated assets
+!frontend/public/**/*
+!frontend/src/assets/**/*
 
 # ── Monitoring ────────────────────────────────────────────────
 # Prometheus data
@@ -77,10 +92,16 @@ lerna-debug.log*
 celery*.log
 
 # ── Editor & IDE ──────────────────────────────────────────────
+# VS Code
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+!.vscode/launch.json
+
+# JetBrains
 .idea/
+
+# Other Editors
 *.suo
 *.ntvs*
 *.njsproj
@@ -95,6 +116,7 @@ htmlcov/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
 
 # ── Misc ─────────────────────────────────────────────────────
 *.bak
