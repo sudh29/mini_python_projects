@@ -108,8 +108,8 @@ export async function login(username: string, password: string): Promise<LoginRe
   // Demo mode: accept known dev credentials
   if (await isDemoMode()) {
     if (
-      (username === 'admin@acme' && password === 'admin123') ||
-      (username === 'viewer@acme' && password === 'viewer123')
+      (username === 'admin' && password === 'admin') ||
+      (username === 'viewer' && password === 'viewer')
     ) {
       const demoUser = {
         id: 'demo-user-001',

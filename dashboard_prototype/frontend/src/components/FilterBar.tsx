@@ -137,28 +137,26 @@ export default function FilterBar({
             ))}
           </select>
 
-          {filter.dateRange === 'custom' && (
-            <div className="filter-bar__custom-dates">
-              <div className="filter-bar__date-input-wrapper">
-                <span className="filter-bar__date-label">From:</span>
-                <input
-                  type="date"
-                  className="filter-bar__date-input"
-                  value={filter.startDate || ''}
-                  onChange={e => onFilterChange({ ...filter, startDate: e.target.value })}
-                />
-              </div>
-              <div className="filter-bar__date-input-wrapper">
-                <span className="filter-bar__date-label">To:</span>
-                <input
-                  type="date"
-                  className="filter-bar__date-input"
-                  value={filter.endDate || ''}
-                  onChange={e => onFilterChange({ ...filter, endDate: e.target.value })}
-                />
-              </div>
+          <div className="filter-bar__custom-dates">
+            <div className="filter-bar__date-input-wrapper">
+              <span className="filter-bar__date-label">From:</span>
+              <input
+                type="date"
+                className="filter-bar__date-input"
+                value={filter.startDate || ''}
+                onChange={e => onFilterChange({ ...filter, startDate: e.target.value, dateRange: 'custom' })}
+              />
             </div>
-          )}
+            <div className="filter-bar__date-input-wrapper">
+              <span className="filter-bar__date-label">To:</span>
+              <input
+                type="date"
+                className="filter-bar__date-input"
+                value={filter.endDate || ''}
+                onChange={e => onFilterChange({ ...filter, endDate: e.target.value, dateRange: 'custom' })}
+              />
+            </div>
+          </div>
         </div>
       )}
 

@@ -12,8 +12,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Activity,
+  Moon,
+  Sun,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { logout } from '../services/api';
 import './Sidebar.css';
 
@@ -23,6 +25,22 @@ interface SidebarProps {
 
 export default function Sidebar({ username = 'admin@acme' }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    return localStorage.getItem('theme') === 'dark' || 
+           (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark(!isDark);
 
   const handleLogout = () => {
     logout();
@@ -78,7 +96,11 @@ export default function Sidebar({ username = 'admin@acme' }: SidebarProps) {
             <span className="sidebar__username">{username}</span>
           </div>
         )}
-        <button className="sidebar__logout" onClick={handleLogout} id="btn-logout">
+        <button className="sidebar__action" onClick={toggleTheme} id="btn-theme-toggle">
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          {!collapsed && <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
+        </button>
+        <button className="sidebar__action sidebar__action--danger" onClick={handleLogout} id="btn-logout">
           <LogOut size={18} />
           {!collapsed && <span>Logout</span>}
         </button>
