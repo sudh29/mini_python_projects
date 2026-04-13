@@ -94,6 +94,10 @@ Comprehensive monitoring using **Prometheus** and **Grafana**:
 
 ## Quick Start
 
+podman-compose -f docker-compose.yml up
+podman-compose -f docker-compose.yml down
+
+
 ### Prerequisites
 
 - Python 3.14+

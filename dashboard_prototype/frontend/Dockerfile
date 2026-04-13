@@ -3,7 +3,7 @@
 # ═══════════════════════════════════════════════════════════════
 
 # --- Stage 1: Build ---
-FROM node:20-alpine AS builder
+FROM docker.io/library/node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # --- Stage 2: Serve ---
-FROM nginx:alpine
+FROM docker.io/library/nginx:alpine
 
 # Copy build artifacts from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html

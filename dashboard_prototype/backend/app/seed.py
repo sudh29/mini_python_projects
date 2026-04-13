@@ -312,8 +312,8 @@ async def seed() -> None:
             User(
                 id=str(uuid.uuid4()),
                 client_id=CLIENT_A_ID,
-                username="admin@acme",
-                password_hash=pwd_context.hash("admin123"),
+                username="admin",
+                password_hash=pwd_context.hash("admin"),
                 role=UserRole.ADMIN,
             ),
             User(
@@ -507,7 +507,7 @@ async def seed() -> None:
 
         print("✅ Database seeded successfully!")
         print(f"   Clients:  2  (Acme Healthcare, Pinnacle Insurance)")
-        print(f"   Users:    3  (admin@acme, viewer@acme, admin@pinnacle)")
+        print(f"   Users:    3  (admin, viewer@acme, admin@pinnacle)")
         print(f"   Bots:     7  (4 Acme + 3 Pinnacle)")
         print(f"   Runs:     {len(all_runs)}  ({succeeded} success, {failed} failed, {running} running)")
         print(f"   Logs:     {len(all_logs)}")

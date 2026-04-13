@@ -2,10 +2,11 @@
 # Backend — FastAPI + Celery
 # ═══════════════════════════════════════════════════════════════
 
-FROM python:3.12-slim
+FROM ghcr.io/astral-sh/uv:latest AS uv
+FROM docker.io/library/python:3.12-slim
 
 # Install uv for fast dependency management
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=uv /uv /uvx /bin/
 
 WORKDIR /app
 

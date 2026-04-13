@@ -9,34 +9,34 @@
 
 services:
   # ── PostgreSQL Database ────────────────────────────────────────
-  postgres:
-    image: postgres:16-alpine
-    container_name: rpa-postgres
-    environment:
-      POSTGRES_DB: rpa_platform
-      POSTGRES_USER: rpa
-      POSTGRES_PASSWORD: rpa_dev_password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rpa -d rpa_platform"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: rpa-postgres
+  #   environment:
+  #     POSTGRES_DB: rpa_platform
+  #     POSTGRES_USER: rpa
+  #     POSTGRES_PASSWORD: rpa_dev_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U rpa -d rpa_platform"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
-  # ── Redis (Broker + Cache) ────────────────────────────────────
-  redis:
-    image: redis:7-alpine
-    container_name: rpa-redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # # ── Redis (Broker + Cache) ────────────────────────────────────
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: rpa-redis
+  #   ports:
+  #     - "6379:6379"
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   # ── FastAPI Control Plane ──────────────────────────────────────
   api:
@@ -47,46 +47,46 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: "postgresql+asyncpg://rpa:rpa_dev_password@postgres:5432/rpa_platform"
-      REDIS_URL: "redis://redis:6379/0"
-      CELERY_BROKER_URL: "redis://redis:6379/1"
-      CELERY_RESULT_BACKEND: "redis://redis:6379/2"
+      # DATABASE_URL: "postgresql+asyncpg://rpa:rpa_dev_password@postgres:5432/rpa_platform"
+      # REDIS_URL: "redis://redis:6379/0"
+      # CELERY_BROKER_URL: "redis://redis:6379/1"
+      # CELERY_RESULT_BACKEND: "redis://redis:6379/2"
       SECRET_KEY: "docker-dev-secret-key"
       CORS_ORIGINS: '["http://localhost:5173","http://localhost:3000"]'
       ARTIFACT_STORAGE_PATH: "/app/artifacts"
       INTERNAL_API_BASE: "http://api:8000"
       INTERNAL_API_KEY: "internal-worker-key"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    # depends_on:
+    #   # postgres:
+    #   #   condition: service_healthy
+    #   # redis:
+    #   #   condition: service_healthy
     volumes:
       - artifacts_data:/app/artifacts
 
-  # ── Celery Worker ──────────────────────────────────────────────
-  worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: rpa-worker
-    command: celery -A app.celery_app:celery_app worker --loglevel=info --queues=bots --concurrency=2
-    environment:
-      DATABASE_URL: "postgresql+asyncpg://rpa:rpa_dev_password@postgres:5432/rpa_platform"
-      REDIS_URL: "redis://redis:6379/0"
-      CELERY_BROKER_URL: "redis://redis:6379/1"
-      CELERY_RESULT_BACKEND: "redis://redis:6379/2"
-      INTERNAL_API_BASE: "http://api:8000"
-      INTERNAL_API_KEY: "internal-worker-key"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+  # # ── Celery Worker ──────────────────────────────────────────────
+  # worker:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: rpa-worker
+  #   command: celery -A app.celery_app:celery_app worker --loglevel=info --queues=bots --concurrency=2
+  #   environment:
+  #     DATABASE_URL: "postgresql+asyncpg://rpa:rpa_dev_password@postgres:5432/rpa_platform"
+  #     REDIS_URL: "redis://redis:6379/0"
+  #     CELERY_BROKER_URL: "redis://redis:6379/1"
+  #     CELERY_RESULT_BACKEND: "redis://redis:6379/2"
+  #     INTERNAL_API_BASE: "http://api:8000"
+  #     INTERNAL_API_KEY: "internal-worker-key"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
 
   # ── Prometheus ─────────────────────────────────────────────────
   prometheus:
-    image: prom/prometheus:v2.53.0
+    image: docker.io/prom/prometheus:v2.53.0
     container_name: rpa-prometheus
     ports:
       - "9090:9090"
@@ -99,7 +99,7 @@ services:
 
   # ── Grafana ────────────────────────────────────────────────────
   grafana:
-    image: grafana/grafana:11.1.0
+    image: docker.io/grafana/grafana:11.1.0
     container_name: rpa-grafana
     ports:
       - "3001:3000"
@@ -124,7 +124,7 @@ services:
       - VITE_API_BASE=http://localhost:8000
 
 volumes:
-  postgres_data:
-  artifacts_data:
-  prometheus_data:
-  grafana_data:
+  # postgres_data:
+  artifacts_data: {}
+  prometheus_data: {}
+  grafana_data: {}
