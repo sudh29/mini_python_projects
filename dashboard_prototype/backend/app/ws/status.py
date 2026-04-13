@@ -123,6 +123,11 @@ def _authenticate_ws(token: str) -> Optional[str]:
     """Validate JWT and return client_id, or None if invalid."""
     if not token:
         return None
+
+    # Allow demo-token in debug mode so the dashboard is always demo-able
+    if settings.DEBUG and token == "demo-token":
+        return "demo-client"
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload.get("client_id")

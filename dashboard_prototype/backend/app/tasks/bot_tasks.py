@@ -11,8 +11,8 @@ from datetime import datetime, timezone
 
 from celery import Task
 from celery.utils.log import get_task_logger
-
 from app.celery_app import celery_app
+from app.tasks.internal_client import internal_client
 
 logger = get_task_logger(__name__)
 
@@ -58,14 +58,11 @@ def run_bot(self, bot_id: str, client_id: str, run_id: str, parameters: Optional
         parameters: Optional runtime parameters
     """
 
-    api_base = "http://localhost:8000"
-    task_id = self.request.id
-
     logger.info(f"[{run_id}] Starting bot {bot_id} for client {client_id}")
 
     try:
         # ── Update status → RUNNING ─────────────────────────────
-        _post_status(api_base, run_id, "running", client_id)
+        internal_client.post_status(run_id, "running")
 
         # ── Simulate bot execution ──────────────────────────────
         # In production, this would import and run the actual bot script
@@ -83,25 +80,25 @@ def run_bot(self, bot_id: str, client_id: str, run_id: str, parameters: Optional
         for i, step in enumerate(steps):
             # Check if task was revoked
             if self.is_aborted():
-                _post_status(api_base, run_id, "cancelled", client_id)
-                _post_log(api_base, run_id, client_id, "info", "Task cancelled by user")
+                internal_client.post_status(run_id, "cancelled")
+                internal_client.post_log(run_id, client_id, "info", "Task cancelled by user")
                 return {"status": "cancelled", "run_id": run_id}
 
-            _post_log(api_base, run_id, client_id, "info", f"Step {i+1}/{len(steps)}: {step}")
+            internal_client.post_log(run_id, client_id, "info", f"Step {i+1}/{len(steps)}: {step}")
 
             # Simulate work
             time.sleep(2)
 
             # Simulate occasional warnings
             if i == 4:
-                _post_log(
-                    api_base, run_id, client_id, "warning",
+                internal_client.post_log(
+                    run_id, client_id, "warning",
                     "Slow page response detected (> 5s)"
                 )
 
         # ── Success ──────────────────────────────────────────────
-        _post_status(api_base, run_id, "success", client_id)
-        _post_log(api_base, run_id, client_id, "info", "Bot execution completed successfully")
+        internal_client.post_status(run_id, "success")
+        internal_client.post_log(run_id, client_id, "info", "Bot execution completed successfully")
 
         return {
             "status": "success",
@@ -111,8 +108,8 @@ def run_bot(self, bot_id: str, client_id: str, run_id: str, parameters: Optional
 
     except Exception as exc:
         logger.error(f"[{run_id}] Bot failed: {exc}")
-        _post_status(api_base, run_id, "failed", client_id, error=str(exc))
-        _post_log(api_base, run_id, client_id, "error", f"Bot execution failed: {exc}")
+        internal_client.post_status(run_id, "failed", error=str(exc))
+        internal_client.post_log(run_id, client_id, "error", f"Bot execution failed: {exc}")
         raise  # Let Celery handle retry
 
 
@@ -124,34 +121,11 @@ def stop_bot(self, celery_task_id: str, run_id: str, client_id: str):
     """Revoke a running bot task."""
     logger.info(f"Revoking task {celery_task_id} for run {run_id}")
     celery_app.control.revoke(celery_task_id, terminate=True, signal="SIGTERM")
-    _post_status("http://localhost:8000", run_id, "cancelled", client_id)
+    internal_client.post_status(run_id, "cancelled")
     return {"status": "cancelled", "run_id": run_id}
 
 
-# ── Helper: Post status update to control plane ─────────────────
-def _post_status(api_base: str, run_id: str, status: str, client_id: str, error: Optional[str] = None):
-    """Post a status update to the API. Fire-and-forget."""
-    try:
-        import httpx
-        httpx.put(
-            f"{api_base}/api/internal/runs/{run_id}/status",
-            json={"status": status, "error_message": error},
-            headers={"X-API-Key": "internal-worker-key"},
-            timeout=5,
-        )
-    except Exception as e:
-        logger.warning(f"Failed to post status update: {e}")
+# ── Internal helpers removed (replaced by InternalClient) ────────
 
 
-def _post_log(api_base: str, run_id: str, client_id: str, level: str, message: str):
-    """Post a log entry to the API. Fire-and-forget."""
-    try:
-        import httpx
-        httpx.post(
-            f"{api_base}/api/internal/runs/{run_id}/logs",
-            json={"level": level, "message": message, "client_id": client_id},
-            headers={"X-API-Key": "internal-worker-key"},
-            timeout=5,
-        )
-    except Exception as e:
-        logger.warning(f"Failed to post log: {e}")
+# ── Internal helpers removed (replaced by InternalClient) ────────

@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     )
 
     # ── Application ──────────────────────────────────────────────
-    APP_NAME: str = "RPA Orchestration Platform"
+    APP_NAME: str = "Jorie AI"
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = True
 
@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "dev-secret-key-change-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480  # 8 hours
     ALGORITHM: str = "HS256"
+
+    # ── Internal Worker API ──────────────────────────────────────
+    INTERNAL_API_BASE: str = "http://localhost:8000"
+    INTERNAL_API_KEY: str = "internal-worker-key"
 
     # ── Artifact Storage ─────────────────────────────────────────
     ARTIFACT_STORAGE_PATH: Path = Path("./artifacts")

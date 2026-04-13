@@ -151,6 +151,5 @@ docker compose up -d
 
 ## Related
 
-- [Backend README](../backend/README.md) — FastAPI control plane
-- [Worker README](../worker/README.md) — Celery bot workers
-- [Monitoring README](../monitoring/README.md) — Prometheus + Grafana
+- [Backend Documentation](../backend/README.md) — FastAPI control plane
+- [Monitoring Documentation](../monitoring/README.md) — Prometheus + Grafana

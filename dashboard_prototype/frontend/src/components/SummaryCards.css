@@ -1,0 +1,175 @@
+/* ═══════════════════════════════════════════════════════════════
+   SummaryCards — KPI Row
+   ══════════════════════════════════════════════════════════════ */
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+.summary-card:hover::before {
+  opacity: 1;
+}
+
+.summary-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.summary-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-card__value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+/* ── Color Variants ──────────────────────────────────────────── */
+.summary-card--info .summary-card__icon {
+  background: var(--info-bg);
+  color: var(--info);
+}
+.summary-card--info::before { background: var(--info); }
+
+.summary-card--live .summary-card__icon {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+.summary-card--live::before { background: #10b981; }
+.summary-card--live .summary-card__value { color: #059669; }
+
+.summary-card--success .summary-card__icon {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.summary-card--success::before { background: var(--success); }
+
+.summary-card--danger .summary-card__icon {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.summary-card--danger::before { background: var(--danger); }
+.summary-card--danger .summary-card__value { color: var(--danger); }
+
+.summary-card--warning .summary-card__icon {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.summary-card--warning::before { background: var(--warning); }
+
+.summary-card--muted .summary-card__icon {
+  background: var(--muted-bg);
+  color: var(--text-secondary);
+}
+.summary-card--muted::before { background: var(--text-muted); }
+
+/* ── Pulse animation for Live ────────────────────────────────── */
+.summary-card--pulse {
+  animation: card-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes card-glow {
+  0%, 100% {
+    box-shadow: var(--shadow);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+  }
+}
+
+/* ── Skeleton ────────────────────────────────────────────────── */
+.summary-card--skeleton {
+  pointer-events: none;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--muted-bg) 25%, var(--hover-bg) 50%, var(--muted-bg) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton--icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.skeleton--text {
+  width: 80px;
+  height: 12px;
+}
+
+.skeleton--value {
+  width: 60px;
+  height: 28px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+}

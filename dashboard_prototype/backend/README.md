@@ -70,7 +70,7 @@ This creates:
 ### Run the API Server
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 - API docs: http://localhost:8000/docs
@@ -127,6 +127,5 @@ Roles: `admin` (full access), `viewer` (read-only)
 
 ## Related
 
-- [Frontend README](../frontend/README.md) — React dashboard
-- [Worker README](../worker/README.md) — Celery bot workers
-- [Monitoring README](../monitoring/README.md) — Prometheus + Grafana
+- [Frontend Documentation](../frontend/README.md) — React dashboard
+- [Monitoring Documentation](../monitoring/README.md) — Prometheus + Grafana

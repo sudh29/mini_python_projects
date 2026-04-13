@@ -6,12 +6,25 @@ Assembles all routes, middleware, and lifecycle events.
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.config import settings
-from app.database import init_db, close_db
-from prometheus_fastapi_instrumentator import Instrumentator
+from app.database import init_db, close_db, get_db
+from app import prometheus_metrics  # Ensure custom metrics are registered
+from app.models.client import User
+from app.auth.dependencies import verify_password, create_access_token
+
+# ── Routers ──────────────────────────────────────────────────────
+from app.api.bots import router as bots_router
+from app.api.logs import router as logs_router
+from app.api.screenshots import router as screenshots_router
+from app.api.metrics import router as metrics_router
+from app.ws.status import router as ws_router
 
 
 @asynccontextmanager
@@ -30,10 +43,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="RPA Orchestration & Monitoring Control Plane",
+    description="Jorie AI — RPA Orchestration & Monitoring Control Plane",
     lifespan=lifespan,
 )
 
+# ── Metrics ──────────────────────────────────────────────────────
 Instrumentator().instrument(app).expose(app)
 
 # ── CORS ─────────────────────────────────────────────────────────
@@ -45,13 +59,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Routers ──────────────────────────────────────────────────────
-from app.api.bots import router as bots_router
-from app.api.logs import router as logs_router
-from app.api.screenshots import router as screenshots_router
-from app.api.metrics import router as metrics_router
-from app.ws.status import router as ws_router
-
+# ── Include Routers ──────────────────────────────────────────────
 app.include_router(bots_router)
 app.include_router(logs_router)
 app.include_router(screenshots_router)
@@ -60,15 +68,6 @@ app.include_router(ws_router)
 
 
 # ── Auth Route (Login) ──────────────────────────────────────────
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.database import get_db
-from app.models.client import User
-from app.auth.dependencies import verify_password, create_access_token
-
-
 @app.post("/api/auth/login")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),

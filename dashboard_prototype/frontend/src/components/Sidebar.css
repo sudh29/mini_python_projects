@@ -1,6 +1,6 @@
 .sidebar {
   width: 260px;
-  min-height: 100vh;
+  height: 100vh;
   background: var(--sidebar-bg);
   border-right: 1px solid var(--border);
   display: flex;
@@ -23,7 +23,14 @@
   padding: 20px 16px;
   border-bottom: 1px solid var(--border);
   position: relative;
+  text-decoration: none;
+  transition: background 0.2s;
 }
+
+.sidebar__brand:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
 
 .sidebar__logo {
   width: 36px;
@@ -88,6 +95,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  overflow-y: auto;
 }
 
 .sidebar__link {
@@ -151,7 +159,7 @@
   white-space: nowrap;
 }
 
-.sidebar__logout {
+.sidebar__action {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -166,7 +174,12 @@
   width: 100%;
 }
 
-.sidebar__logout:hover {
+.sidebar__action:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.sidebar__action--danger:hover {
   background: rgba(239, 68, 68, 0.2);
   color: #ffb3b3;
 }

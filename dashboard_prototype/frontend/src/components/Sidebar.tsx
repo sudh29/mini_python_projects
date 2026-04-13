@@ -1,61 +1,86 @@
-/**
- * Sidebar navigation component.
- */
-
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Bot,
-  Activity,
+  FileBarChart,
+  TrendingUp,
   Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Activity,
+  Moon,
+  Sun,
 } from 'lucide-react';
-import { useState } from 'react';
-import { logout } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
 
-interface SidebarProps {
-  username?: string;
-}
-
-export default function Sidebar({ username = 'admin@acme' }: SidebarProps) {
+export default function Sidebar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    return localStorage.getItem('theme') === 'dark' || 
+           (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark(!isDark);
 
   const handleLogout = () => {
     logout();
-    window.location.href = '/login';
+    navigate('/login');
   };
+
+  const username = user?.username || 'admin';
+
 
   return (
     <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`} id="sidebar">
-      <div className="sidebar__brand">
+      <NavLink to="/" className="sidebar__brand" end>
         <div className="sidebar__logo">
           <Activity size={24} />
         </div>
         {!collapsed && (
           <div className="sidebar__brand-text">
             <span className="sidebar__title">Jorie AI</span>
+            <span className="sidebar__subtitle">Orchestration & Analytics</span>
           </div>
         )}
         <button
           className="sidebar__toggle"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setCollapsed(!collapsed);
+          }}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
-      </div>
+      </NavLink>
 
       <nav className="sidebar__nav">
         <NavLink to="/" end className="sidebar__link" id="nav-dashboard">
           <LayoutDashboard size={20} />
-          {!collapsed && <span>RCM Dashboard</span>}
+          {!collapsed && <span>Activity Dashboard</span>}
         </NavLink>
-        <NavLink to="/bots" className="sidebar__link" id="nav-bots">
-          <Bot size={20} />
-          {!collapsed && <span>Digital Workers</span>}
+        <NavLink to="/reports" className="sidebar__link" id="nav-reports">
+          <FileBarChart size={20} />
+          {!collapsed && <span>Reports</span>}
+        </NavLink>
+        <NavLink to="/trends" className="sidebar__link" id="nav-trends">
+          <TrendingUp size={20} />
+          {!collapsed && <span>Trends & Metrics</span>}
         </NavLink>
         <NavLink to="/settings" className="sidebar__link" id="nav-settings">
           <Settings size={20} />
@@ -72,7 +97,11 @@ export default function Sidebar({ username = 'admin@acme' }: SidebarProps) {
             <span className="sidebar__username">{username}</span>
           </div>
         )}
-        <button className="sidebar__logout" onClick={handleLogout} id="btn-logout">
+        <button className="sidebar__action" onClick={toggleTheme} id="btn-theme-toggle">
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          {!collapsed && <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
+        </button>
+        <button className="sidebar__action sidebar__action--danger" onClick={handleLogout} id="btn-logout">
           <LogOut size={18} />
           {!collapsed && <span>Logout</span>}
         </button>

@@ -1,35 +1,25 @@
-/**
- * App root — router + layout shell.
- */
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
-import BotDetail from './pages/BotDetail';
+import Reports from './pages/Reports';
+import Trends from './pages/Trends';
 import Login from './pages/Login';
+import Settings from './pages/Settings';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
-function AppLayout() {
-  const user = (() => {
-    try {
-      const stored = localStorage.getItem('rpa_user');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  })();
 
+function AppLayout() {
   return (
     <div className="app-layout">
-      <Sidebar
-        username={user?.username || 'admin@acme'}
-      />
+      <Sidebar />
       <main className="app-main">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/bots/:id" element={<BotDetail />} />
-          <Route path="/bots" element={<Dashboard />} />
-          <Route path="/settings" element={<Dashboard />} />
+          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
@@ -37,13 +27,17 @@ function AppLayout() {
   );
 }
 
+
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/*" element={<AppLayout />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/*" element={<AppLayout />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
+

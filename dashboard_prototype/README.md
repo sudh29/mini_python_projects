@@ -1,4 +1,4 @@
-# 🤖 RPA Orchestration & Monitoring Platform
+# 🤖 Jorie AI — RPA Orchestration & Monitoring
 
 A production-grade platform for orchestrating and monitoring Python-based automation bots (Selenium / PyAutoGUI) across virtual machines. Supports multi-tenant deployments with real-time dashboards, centralized logging, and observability.
 
@@ -6,61 +6,73 @@ A production-grade platform for orchestrating and monitoring Python-based automa
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        React Dashboard                          │
-│                     (frontend/ — Vite + TS)                     │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ REST + WebSocket
-┌──────────────────────────▼──────────────────────────────────────┐
-│                    FastAPI Control Plane                         │
-│                   (backend/ — Python 3.14)                       │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │
-│  │ REST API │  │WebSocket │  │   Auth   │  │  Prometheus    │  │
-│  │ /api/*   │  │ /ws/*    │  │  (JWT)   │  │  /metrics      │  │
-│  └──────────┘  └──────────┘  └──────────┘  └────────────────┘  │
-└────────┬───────────────────────────┬────────────────────────────┘
-         │                           │
-    ┌────▼────┐                 ┌────▼────┐
-    │ PostgreSQL│               │  Redis  │
-    │ (Database)│               │ (Broker)│
-    └─────────┘                 └────┬────┘
-                                     │ Celery
-                            ┌────────▼────────┐
-                            │  Bot Workers     │
-                            │ (worker/ — VMs)  │
-                            │                  │
-                            │ Selenium/PyAutoGUI│
-                            └──────────────────┘
-                                     │
-                            ┌────────▼────────┐
-                            │  Observability   │
-                            │ (monitoring/)    │
-                            │ Prometheus       │
-                            │ + Grafana        │
-                            └──────────────────┘
+See the dedicated diagram: [docs/architecture.md](./docs/architecture.md)
+
+```mermaid
+flowchart LR
+    user[Operations User]
+
+    subgraph browser[Browser]
+        frontend[React Dashboard<br/>frontend/]
+    end
+
+    subgraph control[FastAPI Control Plane<br/>backend/]
+        api[REST API + Auth + Metrics]
+        ws[WebSocket Manager]
+        internal[Internal Worker Endpoints]
+    end
+
+    db[(PostgreSQL / SQLite)]
+    redis[(Redis)]
+    worker[Celery Worker<br/>backend/app/tasks]
+    artifacts[(Artifact Storage)]
+    prom[Prometheus]
+    graf[Grafana]
+
+    user --> frontend
+    frontend -->|REST| api
+    frontend <-->|WebSocket| ws
+    api --> db
+    api -->|enqueue tasks| redis
+    worker -->|consume queue| redis
+    worker -->|status + logs| internal
+    internal --> db
+    worker -. screenshots .-> artifacts
+    api <-->|serve files| artifacts
+    prom -->|scrape /metrics| api
+    graf --> prom
 ```
 
 ---
 
-## Project Structure
+| Directory | Description | Documentation |
+|-----------|-------------|---------------|
+| [`backend/`](./backend/) | FastAPI API server, database models, auth, and Celery tasks | [Backend README](./backend/README.md) |
+| [`frontend/`](./frontend/) | React + Vite + TypeScript dashboard with real-time updates | [Frontend README](./frontend/README.md) |
+| [`monitoring/`](./monitoring/) | Prometheus scrape config and Grafana dashboard definitions | [Monitoring README](./monitoring/README.md) |
 
-```
-dashboard_prototype/
-├── backend/           → FastAPI control plane + Celery tasks
-├── frontend/          → React dashboard (Vite + TypeScript)
-├── worker/            → Celery workers & bot scripts
-├── monitoring/        → Prometheus + Grafana configs
-├── .gitignore
-└── README.md          → You are here
-```
+---
 
-| Directory | Description | README |
-|-----------|-------------|--------|
-| [`backend/`](./backend/) | FastAPI API server, database models, auth, Celery integration | [backend/README.md](./backend/README.md) |
-| [`frontend/`](./frontend/) | React + Vite + TypeScript dashboard with real-time updates | [frontend/README.md](./frontend/README.md) |
-| [`worker/`](./worker/) | Celery worker processes, bot scripts, and execution utilities | [worker/README.md](./worker/README.md) |
-| [`monitoring/`](./monitoring/) | Prometheus scrape config and Grafana dashboard definitions | [monitoring/README.md](./monitoring/README.md) |
+## 🏗️ Core Components
+
+### [⚙️ Backend Control Plane](./backend/README.md)
+The brain of the operation, built with **FastAPI**. It handles:
+- **REST API**: Secure endpoints for bot management and monitoring.
+- **WebSocket**: Real-time status updates pushed to the dashboard.
+- **Task Queue**: Dispatches work to Celery workers (currently integrated in the backend codebase).
+- **Database**: Multi-tenant PostgreSQL schema with SQLAlchemy.
+
+### [🎨 React Dashboard](./frontend/README.md)
+A premium, clinical-grade interface for managing RPA operations:
+- **Real-time Monitoring**: Live status badges and log streams.
+- **Data Visualization**: Integrated metrics for success rates and run durations.
+- **Responsive Design**: Modern UI with dark mode and glassmorphic elements.
+
+### [📊 Observability Stack](./monitoring/README.md)
+Comprehensive monitoring using **Prometheus** and **Grafana**:
+- **Custom Metrics**: Specialized RPA metrics (runs, failures, durations).
+- **Dashboards**: Pre-configured Grafana views for operational oversight.
+- **Alerting**: (Planned) Proactive notifications for bot anomalies.
 
 ---
 
@@ -76,11 +88,15 @@ dashboard_prototype/
 | Monitoring | Prometheus + Grafana |
 | Auth | JWT (Bearer) + API Key |
 | Package Manager | uv (Python), npm (Node.js) |
-| Deployment | VMs (current) → Docker + Kubernetes (planned) |
+| Deployment | Docker Compose (current) → Kubernetes (planned) |
 
 ---
 
 ## Quick Start
+
+podman-compose -f docker-compose.yml up
+podman-compose -f docker-compose.yml down
+
 
 ### Prerequisites
 
@@ -112,17 +128,17 @@ npm run dev                    # http://localhost:5173
 ### 3. Worker (requires Redis)
 
 ```bash
-cd worker
+cd backend
 uv venv --python 3.14
 source .venv/bin/activate
 uv pip install -r requirements.txt
-celery -A celery_worker.celery_app worker --loglevel=info --queues=bots
+celery -A app.celery_app:celery_app worker --loglevel=info --queues=bots
 ```
 
 ### 4. Monitoring (Docker)
 
 ```bash
-cd frontend
+# from the repository root
 docker compose up prometheus grafana -d
 # Prometheus: http://localhost:9090
 # Grafana:    http://localhost:3001 (admin/admin)
@@ -137,7 +153,7 @@ User clicks "Run Bot" (React)
   → FastAPI validates request + checks auth
   → BotRun record created in PostgreSQL (status: pending)
   → Task enqueued in Celery via Redis
-  → Worker VM picks up task
+  → Celery worker picks up task
   → Bot executes (Selenium/PyAutoGUI)
   → Logs + screenshots pushed to control plane
   → Status updated in PostgreSQL + Redis
