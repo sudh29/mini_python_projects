@@ -1,0 +1,10 @@
+[project]
+name = "tic-tac-toe"
+version = "0.1.0"
+description = "Two-player Tic-Tac-Toe game with Tkinter"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false
