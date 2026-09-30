@@ -18,15 +18,15 @@ Usage:
     python image_to_text.py --directory ./images/ --output results.txt
 """
 
-import os
-import sys
 import logging
+import os
+import shutil
+import sys
 from pathlib import Path
-from typing import Optional, Dict
 
 try:
     import pytesseract
-    from PIL import Image
+    from PIL import Image, ImageEnhance, ImageFilter
 except ImportError as e:
     raise ImportError(
         f"Required packages not installed: {str(e)}\n"
@@ -41,17 +41,97 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# Platform-specific Tesseract configuration
-if sys.platform == "win32":
-    # Windows path - modify if installed elsewhere
-    TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-    if os.path.exists(TESSERACT_PATH):
-        pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+def configure_tesseract(
+    tesseract_cmd: str | None = None,
+    tessdata_dir: str | None = None,
+) -> bool:
+    """
+    Auto-detect or configure Tesseract executable and tessdata path.
+
+    Returns:
+        bool: True if a valid executable candidate was configured, False otherwise.
+    """
+    if tesseract_cmd:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+    elif os.environ.get("TESSERACT_CMD"):
+        pytesseract.pytesseract.tesseract_cmd = os.environ["TESSERACT_CMD"]
+    elif sys.platform == "win32":
+        possible_win_paths = [
+            r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+            r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+            os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"),
+        ]
+        for p in possible_win_paths:
+            if os.path.exists(p):
+                pytesseract.pytesseract.tesseract_cmd = p
+                break
+    else:
+        found = shutil.which("tesseract")
+        if found:
+            pytesseract.pytesseract.tesseract_cmd = found
+        elif sys.platform == "darwin":
+            for mac_path in ["/opt/homebrew/bin/tesseract", "/usr/local/bin/tesseract"]:
+                if os.path.exists(mac_path):
+                    pytesseract.pytesseract.tesseract_cmd = mac_path
+                    break
+
+    if tessdata_dir:
+        os.environ["TESSDATA_PREFIX"] = str(tessdata_dir)
+
+    return is_tesseract_available()
+
+
+def is_tesseract_available() -> bool:
+    """
+    Check if the Tesseract binary is available and executable.
+    """
+    cmd = getattr(pytesseract.pytesseract, "tesseract_cmd", "tesseract")
+    if not cmd:
+        cmd = "tesseract"
+
+    if os.path.isabs(cmd):
+        return os.path.isfile(cmd) and os.access(cmd, os.X_OK)
+
+    return shutil.which(cmd) is not None
+
+
+# Run auto-discovery on module import
+configure_tesseract()
+
+
+def preprocess_image(image: Image.Image) -> Image.Image:
+    """
+    Apply preprocessing to improve OCR accuracy.
+
+    Args:
+        image: PIL Image object
+
+    Returns:
+        Image.Image: Preprocessed image (grayscale, contrast, sharpness, median filter)
+    """
+    # Convert to grayscale
+    processed = image.convert("L") if image.mode != "L" else image.copy()
+
+    # Increase contrast
+    enhancer = ImageEnhance.Contrast(processed)
+    processed = enhancer.enhance(2)
+
+    # Apply sharpness
+    sharpness_enhancer = ImageEnhance.Sharpness(processed)
+    processed = sharpness_enhancer.enhance(2)
+
+    # Apply slight blur to remove noise
+    processed = processed.filter(ImageFilter.MedianFilter())
+
+    return processed
+
+
+_preprocess_image = preprocess_image
 
 
 def extract_text_from_image(
     image_path: str, language: str = "eng", preprocess: bool = False
-) -> Optional[str]:
+) -> str | None:
     """
     Extract text from a single image file using OCR.
 
@@ -65,72 +145,52 @@ def extract_text_from_image(
 
     Raises:
         FileNotFoundError: If image file doesn't exist
+        RuntimeError: If Tesseract executable is not found
         PIL.UnidentifiedImageError: If file is not a valid image
     """
     if not Path(image_path).exists():
         raise FileNotFoundError(f"Image file not found: {image_path}")
 
+    if not is_tesseract_available():
+        raise RuntimeError(
+            "Tesseract executable not found. Please install Tesseract OCR "
+            "(e.g., 'sudo apt-get install tesseract-ocr' or 'brew install tesseract') "
+            "or set TESSERACT_CMD environment variable."
+        )
+
     try:
         logger.info(f"Processing image: {image_path}")
 
         # Open the image
-        image = Image.open(image_path)
+        with Image.open(image_path) as image:
+            # Apply preprocessing if requested
+            if preprocess:
+                image = preprocess_image(image)
 
-        # Apply preprocessing if requested
-        if preprocess:
-            image = _preprocess_image(image)
+            # Extract text using Tesseract
+            text = pytesseract.image_to_string(image, lang=language)
 
-        # Extract text using Tesseract
-        text = pytesseract.image_to_string(image, lang=language)
+            if text.strip():
+                logger.info(f"Successfully extracted {len(text)} characters")
+            else:
+                logger.warning("No text detected in image")
 
-        if text.strip():
-            logger.info(f"Successfully extracted {len(text)} characters")
-        else:
-            logger.warning("No text detected in image")
+            return text
 
-        return text
-
+    except pytesseract.TesseractError as te:
+        logger.error(f"Tesseract OCR engine error: {te}")
+        raise
     except Exception as e:
         logger.error(f"Error extracting text from image: {str(e)}")
         raise
 
 
-def _preprocess_image(image: "Image.Image") -> "Image.Image":
-    """
-    Apply preprocessing to improve OCR accuracy.
-
-    Args:
-        image: PIL Image object
-
-    Returns:
-        Image.Image: Preprocessed image
-    """
-    from PIL import ImageEnhance, ImageFilter
-
-    # Convert to grayscale
-    if image.mode != "L":
-        image = image.convert("L")
-
-    # Increase contrast
-    enhancer = ImageEnhance.Contrast(image)
-    image = enhancer.enhance(2)
-
-    # Apply sharpness
-    sharpness_enhancer = ImageEnhance.Sharpness(image)
-    image = sharpness_enhancer.enhance(2)
-
-    # Apply slight blur to remove noise
-    image = image.filter(ImageFilter.MedianFilter())
-
-    return image
-
-
 def extract_text_from_directory(
     directory: str,
-    output_file: Optional[str] = None,
+    output_file: str | None = None,
     language: str = "eng",
     recursive: bool = False,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """
     Extract text from all images in a directory.
 
@@ -195,7 +255,7 @@ def extract_text_from_directory(
         return {}
 
 
-def _save_results(results: Dict[str, str], output_file: str) -> None:
+def _save_results(results: dict[str, str], output_file: str) -> None:
     """
     Save extracted text results to file.
 
@@ -254,7 +314,7 @@ if __name__ == "__main__":
             print(text if text else "[No text detected]")
         except Exception as e:
             logger.error(f"Failed to process image: {str(e)}")
-            exit(1)
+            sys.exit(1)
 
     # Process directory
     elif args.directory:
@@ -266,10 +326,11 @@ if __name__ == "__main__":
         )
         if results:
             logger.info("Text extraction completed")
+            sys.exit(0)
         else:
             logger.error("Failed to process directory")
-            exit(1)
+            sys.exit(1)
 
     else:
         parser.print_help()
-        exit(1)
+        sys.exit(1)

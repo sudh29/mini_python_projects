@@ -4,11 +4,10 @@ Log model — structured log entries for bot runs.
 
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, String, Text
-from sqlalchemy import JSON
+from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -18,10 +17,10 @@ if TYPE_CHECKING:
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
-class LogLevel(str, enum.Enum):
+class LogLevel(enum.StrEnum):
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -40,18 +39,22 @@ class Log(Base):
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     run_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("bot_runs.id", ondelete="CASCADE"), nullable=False, index=True
+        String(36),
+        ForeignKey("bot_runs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     client_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("clients.id", ondelete="CASCADE"), nullable=False, index=True
+        String(36),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     level: Mapped[LogLevel] = mapped_column(
         Enum(LogLevel), default=LogLevel.INFO, nullable=False
     )
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    metadata_json: Mapped[dict] = mapped_column(
-        JSON, nullable=True, default=None
-    )
+    metadata_json: Mapped[dict] = mapped_column(JSON, nullable=True, default=None)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow
     )

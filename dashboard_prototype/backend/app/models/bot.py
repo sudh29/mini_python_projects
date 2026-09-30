@@ -3,7 +3,7 @@ Bot model — represents an automation bot owned by a client.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text
@@ -12,12 +12,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 if TYPE_CHECKING:
-    from app.models.client import Client
     from app.models.bot_run import BotRun
+    from app.models.client import Client
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Bot(Base):
@@ -31,7 +31,10 @@ class Bot(Base):
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     client_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("clients.id", ondelete="CASCADE"), nullable=False, index=True
+        String(36),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     process_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -47,7 +50,9 @@ class Bot(Base):
 
     # Relationships
     client: Mapped["Client"] = relationship(back_populates="bots")
-    runs: Mapped[list["BotRun"]] = relationship(back_populates="bot", cascade="all, delete-orphan")
+    runs: Mapped[list["BotRun"]] = relationship(
+        back_populates="bot", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Bot {self.name} ({self.process_name})>"

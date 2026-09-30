@@ -6,11 +6,11 @@ Each task manages the full bot lifecycle: START → RUNNING → SUCCESS/FAILED �
 """
 
 import time
-from typing import Optional
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from celery import Task
 from celery.utils.log import get_task_logger
+
 from app.celery_app import celery_app
 from app.tasks.internal_client import internal_client
 
@@ -18,7 +18,7 @@ logger = get_task_logger(__name__)
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class BotTask(Task):
@@ -44,7 +44,9 @@ class BotTask(Task):
     max_retries=3,
     acks_late=True,
 )
-def run_bot(self, bot_id: str, client_id: str, run_id: str, parameters: Optional[dict] = None):
+def run_bot(
+    self, bot_id: str, client_id: str, run_id: str, parameters: dict | None = None
+):
     """
     Execute a bot on the worker VM.
 
@@ -81,10 +83,14 @@ def run_bot(self, bot_id: str, client_id: str, run_id: str, parameters: Optional
             # Check if task was revoked
             if self.is_aborted():
                 internal_client.post_status(run_id, "cancelled")
-                internal_client.post_log(run_id, client_id, "info", "Task cancelled by user")
+                internal_client.post_log(
+                    run_id, client_id, "info", "Task cancelled by user"
+                )
                 return {"status": "cancelled", "run_id": run_id}
 
-            internal_client.post_log(run_id, client_id, "info", f"Step {i+1}/{len(steps)}: {step}")
+            internal_client.post_log(
+                run_id, client_id, "info", f"Step {i + 1}/{len(steps)}: {step}"
+            )
 
             # Simulate work
             time.sleep(2)
@@ -92,13 +98,14 @@ def run_bot(self, bot_id: str, client_id: str, run_id: str, parameters: Optional
             # Simulate occasional warnings
             if i == 4:
                 internal_client.post_log(
-                    run_id, client_id, "warning",
-                    "Slow page response detected (> 5s)"
+                    run_id, client_id, "warning", "Slow page response detected (> 5s)"
                 )
 
         # ── Success ──────────────────────────────────────────────
         internal_client.post_status(run_id, "success")
-        internal_client.post_log(run_id, client_id, "info", "Bot execution completed successfully")
+        internal_client.post_log(
+            run_id, client_id, "info", "Bot execution completed successfully"
+        )
 
         return {
             "status": "success",
@@ -109,7 +116,9 @@ def run_bot(self, bot_id: str, client_id: str, run_id: str, parameters: Optional
     except Exception as exc:
         logger.error(f"[{run_id}] Bot failed: {exc}")
         internal_client.post_status(run_id, "failed", error=str(exc))
-        internal_client.post_log(run_id, client_id, "error", f"Bot execution failed: {exc}")
+        internal_client.post_log(
+            run_id, client_id, "error", f"Bot execution failed: {exc}"
+        )
         raise  # Let Celery handle retry
 
 

@@ -3,6 +3,7 @@ Bot-related Pydantic schemas for request/response validation.
 """
 
 from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -29,6 +30,7 @@ class BotOut(BaseModel):
 
 class BotWithStatus(BotOut):
     """Bot with its current runtime status (from Redis or latest run)."""
+
     current_status: str = "idle"  # idle | running | failed | success
     last_run_at: datetime | None = None
     total_runs: int = 0
@@ -38,12 +40,14 @@ class BotWithStatus(BotOut):
 
 class BotRunRequest(BaseModel):
     """Request to start a bot execution."""
+
     bot_id: str
     parameters: dict | None = None  # Optional runtime parameters
 
 
 class BotStopRequest(BaseModel):
     """Request to stop a running bot."""
+
     bot_id: str
     run_id: str | None = None  # If None, stop the currently active run
     force: bool = False

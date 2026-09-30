@@ -1,10 +1,15 @@
-from tkinter import E, Button, Frame, Label, Tk, W
+from tkinter import Button, E, Frame, Label, Tk, W
 from tkinter import font as tkfont
 
-import setting
-import utils
-from board import Board
-from cell import Cell
+try:
+    from game.tic_tac_toe import setting, utils
+    from game.tic_tac_toe.board import Board
+    from game.tic_tac_toe.cell import Cell
+except ImportError:
+    import setting
+    import utils
+    from board import Board
+    from cell import Cell
 
 
 class TicTacToeApp:
@@ -251,7 +256,7 @@ class TicTacToeApp:
         self.title_label.grid_configure(pady=(0, pad_title_gap))
         self.status_row.grid_configure(
             padx=pad_status_x,
-            pady=pad_section,
+            pady=pad_status_y,
         )
         self.turn_badge.grid_configure(padx=(pad_status_x, pad_badge))
         self.status_label.grid_configure(padx=(0, pad_status_x))
@@ -318,7 +323,9 @@ class TicTacToeApp:
                 setting.FONT_SCORE_RATIO,
             )
             self._font_score.configure(size=score_size)
-            score_widgets = list(self._score_name_labels) + list(self.score_labels.values())
+            score_widgets = list(self._score_name_labels) + list(
+                self.score_labels.values()
+            )
             for widget in score_widgets:
                 widget.configure(font=self._font_score)
 

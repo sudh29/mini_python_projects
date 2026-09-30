@@ -6,21 +6,21 @@ whenever a bot status changes.
 """
 
 import asyncio
-from typing import Dict, Optional, Set
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from jose import JWTError, jwt
 
 from app.config import settings
 
 router = APIRouter()
 
+
 # ── Connection Manager ───────────────────────────────────────────
 class ConnectionManager:
     """Manages WebSocket connections grouped by client_id."""
 
     def __init__(self):
-        self._connections: Dict[str, Set[WebSocket]] = {}
+        self._connections: dict[str, set[WebSocket]] = {}
         self._lock = asyncio.Lock()
 
     async def connect(self, websocket: WebSocket, client_id: str):
@@ -90,11 +90,13 @@ async def websocket_status(
 
     try:
         # Send initial connection confirmation
-        await websocket.send_json({
-            "type": "connected",
-            "client_id": client_id,
-            "message": "Real-time status updates active",
-        })
+        await websocket.send_json(
+            {
+                "type": "connected",
+                "client_id": client_id,
+                "message": "Real-time status updates active",
+            }
+        )
 
         # Keep connection alive — listen for client messages
         while True:
@@ -106,7 +108,7 @@ async def websocket_status(
                 # Handle ping/pong keepalive
                 if data == "ping":
                     await websocket.send_text("pong")
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # Send heartbeat
                 try:
                     await websocket.send_json({"type": "heartbeat"})
@@ -119,7 +121,7 @@ async def websocket_status(
         await manager.disconnect(websocket, client_id)
 
 
-def _authenticate_ws(token: str) -> Optional[str]:
+def _authenticate_ws(token: str) -> str | None:
     """Validate JWT and return client_id, or None if invalid."""
     if not token:
         return None
@@ -129,7 +131,9 @@ def _authenticate_ws(token: str) -> Optional[str]:
         return "demo-client"
 
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         return payload.get("client_id")
     except (JWTError, KeyError):
         return None

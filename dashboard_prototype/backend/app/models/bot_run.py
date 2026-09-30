@@ -4,7 +4,7 @@ BotRun model — tracks each execution of a bot.
 
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String, Text
@@ -18,10 +18,10 @@ if TYPE_CHECKING:
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
-class RunStatus(str, enum.Enum):
+class RunStatus(enum.StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     SUCCESS = "success"
@@ -42,21 +42,23 @@ class BotRun(Base):
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     bot_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("bots.id", ondelete="CASCADE"), nullable=False, index=True
+        String(36),
+        ForeignKey("bots.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     client_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("clients.id", ondelete="CASCADE"), nullable=False, index=True
+        String(36),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     celery_task_id: Mapped[str] = mapped_column(String(255), nullable=True)
     status: Mapped[RunStatus] = mapped_column(
         Enum(RunStatus), default=RunStatus.PENDING, nullable=False
     )
-    start_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    end_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    end_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     error_message: Mapped[str] = mapped_column(Text, nullable=True)
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
     artifacts_path: Mapped[str] = mapped_column(String(512), nullable=True)
@@ -66,7 +68,9 @@ class BotRun(Base):
 
     # Relationships
     bot: Mapped["Bot"] = relationship(back_populates="runs")
-    logs: Mapped[list["Log"]] = relationship(back_populates="run", cascade="all, delete-orphan")
+    logs: Mapped[list["Log"]] = relationship(
+        back_populates="run", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<BotRun {self.id[:8]} status={self.status.value}>"

@@ -1,24 +1,46 @@
+"""Exercise 8: Pattern Filter across arrays (Case-insensitive, no duplicates)."""
+
 # Function to find the patterns across arrays. Your function will receive any no.
-# arrays and another argument pattern. You must return a list of all elements in 
+# arrays and another argument pattern. You must return a list of all elements in
 # all arrays that doesn't contain the pattern, avoid duplicates and its not case-sensitive.
 
-# function to removeduplicate
+
+# function to remove duplicates case-insensitively while preserving order
 def removeduplicate(arr):
-    temp=[]
+    temp = []
+    seen = set()
     for i in arr:
-        if i.lower() not in temp and i.upper() not in temp:
+        low = i.lower()
+        if low not in seen:
+            seen.add(low)
             temp.append(i)
     return temp
 
+
 # Function takes multiple Arrays, another argument pattern.
-def ex8(x,*args):
-    # filter all elements in all arrays that doesn't contain the pattern
-    res =[i for arg in args for i in arg if x not in i]
-    # removeduplicate 
+def ex8(pattern, *args):
+    # filter all elements in all arrays that doesn't contain the pattern (case-insensitive)
+    pat_low = pattern.lower()
+    res = [item for arg in args for item in arg if pat_low not in item.lower()]
     return removeduplicate(res)
 
 
 # Run the function for given input
-print(ex8("code", ["hello","world","code","python"] ,["code","coding","coder","code lead"],["Python","Data","AI","C"]))
+if __name__ == "__main__":
+    print(
+        ex8(
+            "code",
+            ["hello", "world", "code", "python"],
+            ["code", "coding", "coder", "code lead"],
+            ["Python", "Data", "AI", "C"],
+        )
+    )
 
-print(ex8("Arun", ["hello","world","code","python"] ,["code","coding","coder","code lead"],["Python","Data","AI","C"]))
+    print(
+        ex8(
+            "Arun",
+            ["hello", "world", "code", "python"],
+            ["code", "coding", "coder", "code lead"],
+            ["Python", "Data", "AI", "C"],
+        )
+    )

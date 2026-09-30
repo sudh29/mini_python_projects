@@ -5,32 +5,27 @@ This module provides a flexible web scraping framework with support for:
 - HTTP requests with proper headers and timeouts
 - HTML parsing with Beautiful Soup
 - Retry logic with exponential backoff
-- Session management
+- Session management and context manager protocol
 - JSON/CSV export
 - Error handling and logging
-
-Features:
-- Respect for robots.txt
-- User-agent rotation
-- Rate limiting
-- Connection pooling
-- Comprehensive error handling
 
 Usage:
     from web_scraping import WebScraper
 
-    scraper = WebScraper()
-    data = scraper.scrape(url='https://example.com')
+    with WebScraper() as scraper:
+        data = scraper.scrape(url='https://example.com', selectors={'title': 'h1'})
 """
+
+import csv
+import json
+import logging
+import random
+import sys
+import time
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
-import json
-import csv
-import logging
-import time
-from typing import List, Dict, Optional
-
 
 # Configure logging
 logging.basicConfig(
@@ -44,16 +39,16 @@ class WebScraper:
 
     # Common user agents to rotate
     USER_AGENTS = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     ]
 
     def __init__(
         self,
         timeout: int = 10,
         max_retries: int = 3,
-        retry_delay: int = 1,
+        retry_delay: float = 1.0,
         rate_limit: float = 1.0,
     ):
         """
@@ -71,12 +66,16 @@ class WebScraper:
         self.rate_limit = rate_limit
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": self.USER_AGENTS[0]})
-        self.last_request_time = 0
+        self.last_request_time = 0.0
+
+    def __enter__(self) -> "WebScraper":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
 
     def _get_user_agent(self) -> str:
         """Get a random user agent from the list."""
-        import random
-
         return random.choice(self.USER_AGENTS)
 
     def _respect_rate_limit(self) -> None:
@@ -86,7 +85,7 @@ class WebScraper:
             time.sleep(self.rate_limit - elapsed)
         self.last_request_time = time.time()
 
-    def fetch_page(self, url: str) -> Optional[str]:
+    def fetch_page(self, url: str) -> str | None:
         """
         Fetch a webpage with retry logic.
 
@@ -127,10 +126,11 @@ class WebScraper:
                         f"Failed to fetch {url} after {self.max_retries} attempts"
                     )
                     return None
+        return None
 
     def parse_page(
         self, html: str, parser: str = "html.parser"
-    ) -> Optional[BeautifulSoup]:
+    ) -> BeautifulSoup | None:
         """
         Parse HTML content with Beautiful Soup.
 
@@ -148,8 +148,8 @@ class WebScraper:
             return None
 
     def extract_articles(
-        self, soup: BeautifulSoup, selectors: Dict[str, str]
-    ) -> List[Dict[str, str]]:
+        self, soup: BeautifulSoup, selectors: dict[str, str]
+    ) -> list[dict[str, Any]]:
         """
         Extract article data using CSS selectors.
 
@@ -160,16 +160,20 @@ class WebScraper:
         Returns:
             List of dictionaries with extracted data
         """
-        articles = []
+        articles: list[dict[str, Any]] = []
 
-        # Find all article containers (assuming 'article' selector exists)
         container_selector = selectors.get("container", "article")
         containers = soup.find_all(container_selector)
+
+        if not containers:
+            # If no containers matched, try select on the document level
+            selected = soup.select(container_selector)
+            containers = selected if selected else [soup]
 
         logger.info(f"Found {len(containers)} containers")
 
         for container in containers:
-            article = {}
+            article: dict[str, Any] = {}
 
             for field, selector in selectors.items():
                 if field == "container":
@@ -182,11 +186,13 @@ class WebScraper:
                             article[field] = element.get("href", "")
                         else:
                             article[field] = element.get_text(strip=True)
+                    else:
+                        article[field] = None
                 except Exception as e:
                     logger.debug(f"Error extracting {field}: {str(e)}")
                     article[field] = None
 
-            if article:
+            if any(v is not None for v in article.values()):
                 articles.append(article)
 
         return articles
@@ -194,10 +200,10 @@ class WebScraper:
     def scrape(
         self,
         url: str,
-        selectors: Dict[str, str],
-        output_file: Optional[str] = None,
+        selectors: dict[str, str],
+        output_file: str | None = None,
         format: str = "json",
-    ) -> List[Dict[str, str]]:
+    ) -> list[dict[str, Any]]:
         """
         Scrape a webpage and optionally save results.
 
@@ -236,7 +242,7 @@ class WebScraper:
             return []
 
     def _save_results(
-        self, data: List[Dict], output_file: str, format: str = "json"
+        self, data: list[dict[str, Any]], output_file: str, format: str = "json"
     ) -> None:
         """Save scraped data to file."""
         try:
@@ -246,8 +252,9 @@ class WebScraper:
 
             elif format.lower() == "csv":
                 if data:
+                    keys = list(data[0].keys())
                     with open(output_file, "w", newline="", encoding="utf-8") as f:
-                        writer = csv.DictWriter(f, fieldnames=data[0].keys())
+                        writer = csv.DictWriter(f, fieldnames=keys)
                         writer.writeheader()
                         writer.writerows(data)
 
@@ -282,16 +289,16 @@ if __name__ == "__main__":
         selectors = json.loads(args.selectors)
     except json.JSONDecodeError:
         logger.error("Invalid JSON in selectors")
-        exit(1)
+        sys.exit(1)
 
-    # Example: Scrape OpenAI blog
-    scraper = WebScraper()
-    articles = scraper.scrape(
-        url=args.url, selectors=selectors, output_file=args.output, format=args.format
-    )
+    with WebScraper() as scraper:
+        articles = scraper.scrape(
+            url=args.url,
+            selectors=selectors,
+            output_file=args.output,
+            format=args.format,
+        )
 
     print(f"\nFound {len(articles)} articles")
     for article in articles[:3]:
         print(f"- {article}")
-
-    scraper.close()

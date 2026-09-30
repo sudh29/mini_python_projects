@@ -12,7 +12,9 @@ engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
     # SQLite needs this for async writes
-    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
+    connect_args={"check_same_thread": False}
+    if "sqlite" in settings.DATABASE_URL
+    else {},
 )
 
 # ── Session Factory ───────────────────────────────────────────────
@@ -44,8 +46,11 @@ async def get_db() -> AsyncSession:  # type: ignore[misc]
 
 # ── Lifecycle Helpers ────────────────────────────────────────────
 async def init_db() -> None:
-    """Initialize DB connections (Schema managed by Alembic)."""
-    pass
+    """Initialize DB connections and ensure tables are created."""
+    import app.models  # noqa: F401
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 async def close_db() -> None:

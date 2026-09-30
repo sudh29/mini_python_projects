@@ -4,6 +4,7 @@ Uses pydantic-settings for type-safe, validated config.
 """
 
 from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -45,8 +46,8 @@ class Settings(BaseSettings):
 
     # ── CORS ─────────────────────────────────────────────────────
     CORS_ORIGINS: list[str] = [
-        "http://localhost:5173",   # Vite dev server
-        "http://localhost:3000",   # Next.js fallback
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:3000",  # Next.js fallback
     ]
 
     @property

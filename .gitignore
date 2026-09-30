@@ -25,6 +25,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.traineddata
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -197,3 +198,8 @@ cython_debug/
 *.Zone.Identifier
 **/*Zone.Identifier
 .Zone.Identifier
+
+# Frontend
+node_modules/
+.vite/
+
