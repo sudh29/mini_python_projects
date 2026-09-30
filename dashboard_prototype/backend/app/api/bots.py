@@ -14,7 +14,7 @@ from app.database import get_db
 from app.models import Bot, BotRun
 from app.models.client import UserRole
 from app.schemas.bot import BotOut, BotRunRequest, BotStopRequest, BotWithStatus
-from app.schemas.bot_run import BotRunOut, BotRunListOut
+from app.schemas.bot_run import BotRunListOut, BotRunOut
 from app.services.bot_service import BotService
 
 router = APIRouter(prefix="/api/bots", tags=["bots"])
@@ -69,6 +69,7 @@ async def get_bot_runs(
         raise HTTPException(status_code=404, detail="Bot not found")
 
     from sqlalchemy import func
+
     # Count total
     count_q = await db.execute(
         select(func.count(BotRun.id)).where(BotRun.bot_id == bot_id)

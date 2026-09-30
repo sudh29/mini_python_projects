@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """
-Collect tweets for Indian stock-market hashtags using snscrape.
+Collect tweets for Indian stock-market hashtags using snscrape or synthetic generator.
 Saves deduplicated results to a Parquet file.
 """
 
-import snscrape.modules.twitter as sntwitter
-import pandas as pd
-from datetime import datetime, timedelta, timezone
-import time
 import logging
-from pathlib import Path
 import signal
+import time
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+import pandas as pd
+
+try:
+    import snscrape.modules.twitter as sntwitter
+except ImportError:
+    sntwitter = None
 
 # Config
 HASHTAGS = ["#nifty50", "#sensex", "#intraday", "#banknifty"]
@@ -42,7 +47,7 @@ signal.signal(signal.SIGTERM, handle_sigint)
 
 
 def build_query():
-    since_date = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+    since_date = (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d")
     # include all hashtags OR'ed, restrict to last 24h using since:
     q = " OR ".join(HASHTAGS) + f" since:{since_date}"
     # exclude retweets to reduce duplicates if desired:
@@ -55,7 +60,7 @@ def tweet_to_record(tweet):
     return {
         "tweet_id": tweet.id,
         "username": tweet.user.username if tweet.user else None,
-        "timestamp": tweet.date.astimezone(timezone.utc).isoformat(),
+        "timestamp": tweet.date.astimezone(UTC).isoformat(),
         "content": tweet.content,
         "likeCount": tweet.likeCount,
         "retweetCount": tweet.retweetCount,
@@ -76,6 +81,29 @@ def write_parquet(df, file_path):
 def collect_tweets(
     target_count=TARGET_COUNT, batch_size=BATCH_WRITE_SIZE, output_dir=OUTPUT_DIR
 ):
+    if sntwitter is None:
+        logger.warning(
+            "snscrape is not installed or supported on this Python environment. "
+            "Using DataCollector mock tweet generation fallback."
+        )
+        try:
+            from web_scraping.web_project1.src.collection.collector import DataCollector
+        except ImportError:
+            from collection.collector import DataCollector
+
+        collector = DataCollector(
+            HASHTAGS,
+            (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d"),
+            min(target_count, 100),
+        )
+        df = collector.generate_mock_tweets()
+        out_file = (
+            output_dir
+            / f"stock_tweets_{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}.parquet"
+        )
+        write_parquet(df, out_file)
+        return
+
     q = build_query()
     logger.info(f"Query: {q}")
     scraper = sntwitter.TwitterSearchScraper(q)
@@ -94,10 +122,8 @@ def collect_tweets(
                 logger.info("Shutdown flag set, stopping collection loop.")
                 break
 
-            # Defensive filtering: ensure tweet within last 24 hours (some scrapers can return older)
-            if tweet.date < datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(
-                days=1
-            ):
+            # Defensive filtering: ensure tweet within last 24 hours
+            if tweet.date < datetime.now(UTC) - timedelta(days=1):
                 continue
 
             rec = tweet_to_record(tweet)
@@ -116,7 +142,7 @@ def collect_tweets(
                 df = pd.DataFrame(records)
                 out_file = (
                     output_dir
-                    / f"tweets_batch_{batch_index}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.parquet"
+                    / f"tweets_batch_{batch_index}_{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.parquet"
                 )
                 write_parquet(df, out_file)
                 records = []  # reset records
@@ -131,27 +157,23 @@ def collect_tweets(
             df = pd.DataFrame(records)
             out_file = (
                 output_dir
-                / f"tweets_batch_{batch_index}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.parquet"
+                / f"tweets_batch_{batch_index}_{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.parquet"
             )
             write_parquet(df, out_file)
 
     except Exception as e:
         logger.exception("Exception during scraping: %s", e)
-        # On transient errors, implement a simple backoff and retry mechanism
         while retries < MAX_RETRIES and not shutdown_flag:
             wait = RETRY_BACKOFF_BASE**retries
             logger.info(f"Retrying after {wait}s (attempt {retries + 1}/{MAX_RETRIES})")
             time.sleep(wait)
             retries += 1
             try:
-                # Attempt to resume: note snscrape generator is stateful; better to reinstantiate
                 scraper = sntwitter.TwitterSearchScraper(q)
                 for tweet in scraper.get_items():
                     if tweet.id in seen_ids:
                         continue
-                    if tweet.date < datetime.utcnow().replace(
-                        tzinfo=timezone.utc
-                    ) - timedelta(days=1):
+                    if tweet.date < datetime.now(UTC) - timedelta(days=1):
                         continue
                     rec = tweet_to_record(tweet)
                     seen_ids.add(rec["tweet_id"])
@@ -162,7 +184,7 @@ def collect_tweets(
                         df = pd.DataFrame(records)
                         out_file = (
                             output_dir
-                            / f"tweets_batch_{batch_index}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.parquet"
+                            / f"tweets_batch_{batch_index}_{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.parquet"
                         )
                         write_parquet(df, out_file)
                         records = []
@@ -174,17 +196,15 @@ def collect_tweets(
                 logger.exception("Retry attempt failed: %s", e2)
                 continue
 
-    # combine all batch files (optional) into a single deduplicated parquet
     files = sorted(output_dir.glob("tweets_batch_*.parquet"))
     if files:
         logger.info("Combining batch files and deduplicating...")
         dfs = [pd.read_parquet(f) for f in files]
         combined = pd.concat(dfs, ignore_index=True)
         combined.drop_duplicates(subset=["tweet_id"], inplace=True)
-        # final output filename
         final_file = (
             output_dir
-            / f"stock_tweets_{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}.parquet"
+            / f"stock_tweets_{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}.parquet"
         )
         write_parquet(combined, final_file)
         logger.info(f"Final dataset rows: {len(combined)}. Saved to {final_file}")

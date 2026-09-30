@@ -4,7 +4,7 @@ Client & User models — multi-tenant foundation.
 
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String
@@ -17,10 +17,10 @@ if TYPE_CHECKING:
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
-class UserRole(str, enum.Enum):
+class UserRole(enum.StrEnum):
     ADMIN = "admin"
     VIEWER = "viewer"
 
@@ -39,8 +39,12 @@ class Client(Base):
     )
 
     # Relationships
-    users: Mapped[list["User"]] = relationship(back_populates="client", cascade="all, delete-orphan")
-    bots: Mapped[list["Bot"]] = relationship(back_populates="client", cascade="all, delete-orphan")
+    users: Mapped[list["User"]] = relationship(
+        back_populates="client", cascade="all, delete-orphan"
+    )
+    bots: Mapped[list["Bot"]] = relationship(
+        back_populates="client", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Client {self.name} ({self.id[:8]})>"
@@ -53,7 +57,10 @@ class User(Base):
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     client_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("clients.id", ondelete="CASCADE"), nullable=False, index=True
+        String(36),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     username: Mapped[str] = mapped_column(String(255), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)

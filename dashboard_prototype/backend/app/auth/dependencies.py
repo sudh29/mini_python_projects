@@ -8,8 +8,8 @@ For the prototype, we support both:
 All endpoints automatically get the current user's client_id for tenant isolation.
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import Annotated, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -39,6 +39,7 @@ class TokenData(BaseModel):
 
 class CurrentUser(BaseModel):
     """Injected into route handlers via Depends()."""
+
     user_id: str
     client_id: str
     role: UserRole
@@ -48,7 +49,7 @@ class CurrentUser(BaseModel):
 # ── Token Creation ───────────────────────────────────────────────
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
@@ -64,8 +65,10 @@ def hash_password(password: str) -> str:
 # ── Auth Dependency ──────────────────────────────────────────────
 async def get_current_user(
     db: Annotated[AsyncSession, Depends(get_db)],
-    credentials: Annotated[Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)] = None,
-    x_api_key: Annotated[Optional[str], Header(alias="X-API-Key")] = None,
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None, Depends(bearer_scheme)
+    ] = None,
+    x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
 ) -> CurrentUser:
     """
     Resolve the current user from either:
@@ -96,7 +99,7 @@ async def get_current_user(
     # ── Fallback to API Key ──────────────────────────────────────
     if x_api_key:
         result = await db.execute(
-            select(Client).where(Client.api_key == x_api_key, Client.is_active == True)
+            select(Client).where(Client.api_key == x_api_key, Client.is_active)
         )
         client = result.scalar_one_or_none()
         if not client:
@@ -122,7 +125,10 @@ async def get_current_user(
 # ── Role Guard ───────────────────────────────────────────────────
 def require_role(required: UserRole):
     """Dependency factory — ensures user has the required role."""
-    async def _check(user: Annotated[CurrentUser, Depends(get_current_user)]) -> CurrentUser:
+
+    async def _check(
+        user: Annotated[CurrentUser, Depends(get_current_user)],
+    ) -> CurrentUser:
         if user.role == UserRole.ADMIN:
             return user  # Admin can do everything
         if user.role != required:
@@ -131,14 +137,15 @@ def require_role(required: UserRole):
                 detail=f"Role '{required.value}' required",
             )
         return user
+
     return _check
 
 
 # ── Internal Worker Auth ─────────────────────────────────────────
 async def verify_worker_key(
-    x_api_key: Annotated[Optional[str], Header(alias="X-API-Key")] = None,
+    x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
 ) -> str:
-    """ Ensure the request is coming from a trusted worker. """
+    """Ensure the request is coming from a trusted worker."""
     if not x_api_key or x_api_key != settings.INTERNAL_API_KEY:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

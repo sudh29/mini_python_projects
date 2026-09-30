@@ -1,20 +1,47 @@
-# MultiThreadingPython
+# YouTube Analytics & Clinical Web Scraping
 
-## Lock Objects, Semaphores, Condition Variables
+A collection of web data extraction notebooks and exploratory data analysis (EDA) pipelines focusing on media analytics (YouTube view distributions) and healthcare directory scraping.
 
-#### Imagine a public restroom with a single lock on the door (lock object). Only one person can enter at a time, ensuring privacy.
-#### Now, consider a locker room with 10 lockers (semaphore). Multiple people can access lockers concurrently as long as there are lockers available (counter > 0).
-#### Finally, think of a waiting area with chairs and a call button (condition variable). People waiting for a locker can sit and wait (holding a lock on the waiting area). When a locker becomes available, someone can press the call button (notify) to signal a waiting person (who can then acquire the locker).
+---
 
-Here's a breakdown of when to use the multiprocessing module vs. the threading module in Python:
-## Use multiprocessing when:
-Your tasks are CPU-bound: This means the tasks spend most of their time performing calculations and not waiting for external resources (like I/O operations).
-You have multiple CPU cores: Since multiprocessing leverages separate processes, it can truly take advantage of multiple cores to achieve parallel execution.
-You need to isolate tasks: Processes have separate memory spaces, which can be helpful for tasks that might have memory leaks or require isolated environments.
+## Notebooks & Modules
 
-## Use threading when:
-Your tasks are I/O-bound: This means the tasks spend a significant amount of time waiting for external resources like network requests, disk access, or user input. In these scenarios, threads can improve responsiveness by allowing other threads to execute while one thread waits for I/O.
-You have a single CPU core: While threading can still help with I/O-bound tasks even on a single core, the benefits of true parallelism won't be realized.
-You need to share data between tasks: Threads within the same process share memory, making it easier to directly access and modify shared data structures. However, be cautious of race conditions and use appropriate synchronization mechanisms (locks) when modifying shared data.
+| File | Description | Technologies |
+|:---|:---|:---|
+| `1_clinic_data.ipynb` | Healthcare clinic directory scraping, extracting contact info and location metadata | `requests`, `beautifulsoup4`, `pandas` |
+| `2_download_image.ipynb` | Automated batch image downloading and asset pipeline | `requests`, `PIL` |
+| `2_youtube_views.ipynb` | YouTube video metadata scraping, view count parsing, and cleaning | `requests`, `regex`, `pandas` |
+| `4_youtube_views.ipynb` | Exploratory data analysis, view distribution modeling, and metrics calculation | `matplotlib`, `seaborn`, `pandas` |
+| `validate_data.py` | Headless Python dataset validator checking schema integrity and metrics | `pandas` |
+| `youtube_views.csv` | Extracted dataset of 64 YouTube videos with parsed titles, URLs, raw views, and normalized integer view counts | Tabular CSV |
 
-In essence, choose multiprocessing for true parallel processing on CPU-bound tasks with multiple cores, and use threading for I/O-bound tasks or when data sharing between threads is necessary.
+---
+
+## Dataset Schema (`youtube_views.csv`)
+
+| Column | Type | Description | Example |
+|:---|:---|:---|:---|
+| `title` | `str` | Video title | `"The ACTUALLY GOOD YOUTUBERS Iceberg"` |
+| `video_url` | `str` | Canonical YouTube URL | `"https://www.youtube.com/watch?v=-dcuAAMUicw"` |
+| `views` | `str` | Formatted YouTube view string | `"671K views"` |
+| `video_age` | `str` | Upload age string | `"1 month ago"` |
+| `clean_views`| `int` | Cleaned integer view count for numerical analysis | `671000` |
+
+---
+
+## Validation & Headless Execution
+
+To validate the dataset integrity headlessly:
+
+```bash
+uv run python web_scraping/web_project0/validate_data.py
+```
+
+To use programmatic loading in Python:
+
+```python
+from web_scraping.web_project0 import load_youtube_dataset
+
+df = load_youtube_dataset()
+print(f"Loaded {len(df)} videos. Max views: {df['clean_views'].max():,}")
+```

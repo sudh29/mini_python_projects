@@ -14,8 +14,8 @@ Run with: python3 4_asyncio.py
 """
 
 import asyncio
-import time
 import logging
+import time
 
 # Configure logging for clearer asyncio output
 logging.basicConfig(
@@ -28,7 +28,7 @@ logger = logging.getLogger("asyncio_demo")
 
 async def worker_task(
     task_id: int, task_name: str, delay: float, iterations: int
-) -> None:
+) -> list[int]:
     """Execute an async worker task that logs timestamps at regular intervals.
 
     This coroutine runs concurrently with other coroutines in the event loop.
@@ -39,44 +39,47 @@ async def worker_task(
         task_name: Display name for the task (used in logging)
         delay: Seconds to wait between iterations (uses asyncio.sleep)
         iterations: Number of times to log the timestamp
+
+    Returns:
+        list[int]: Completed iteration indices
     """
     logger.info(f"Task {task_id} ({task_name}) starting with {iterations} iterations")
+    completed = []
 
     for remaining in range(iterations, 0, -1):
-        await asyncio.sleep(delay)  # Yields control to event loop
+        await asyncio.sleep(delay)
         logger.info(
             f"Task {task_id} ({task_name}): {time.ctime()}, iterations_left={remaining}"
         )
+        completed.append(remaining)
 
     logger.info(f"Task {task_id} ({task_name}) complete")
+    return completed
 
 
-async def main() -> None:
+async def main(delay_scale: float = 0.5) -> list[list[int]]:
     """Create and run multiple coroutines concurrently using asyncio."""
     logger.info("=== Asyncio example starting ===")
     logger.info(
         "Key benefit: runs concurrently on single thread without GIL limitations"
     )
 
-    # Create multiple coroutines (not yet executing)
     tasks = [
-        worker_task(1, "Task-A", delay=1.0, iterations=5),
-        worker_task(2, "Task-B", delay=2.0, iterations=5),
-        worker_task(3, "Task-C", delay=1.5, iterations=4),
+        worker_task(1, "Task-A", delay=1.0 * delay_scale, iterations=3),
+        worker_task(2, "Task-B", delay=1.5 * delay_scale, iterations=2),
+        worker_task(3, "Task-C", delay=0.8 * delay_scale, iterations=3),
     ]
 
-    # Run all coroutines concurrently using gather()
-    # gather() waits for all tasks to complete and returns their results
     start_time = time.time()
-    await asyncio.gather(*tasks)
+    results = await asyncio.gather(*tasks)
     end_time = time.time()
 
     logger.info(
         f"=== All tasks finished (total time: {end_time - start_time:.2f}s) ==="
     )
     logger.info("Note: Tasks ran concurrently, so total time < sum of all delays")
+    return list(results)
 
 
 if __name__ == "__main__":
-    # Run the async main() function in the event loop
     asyncio.run(main())

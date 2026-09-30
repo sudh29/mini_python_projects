@@ -40,7 +40,11 @@ class Board:
         return self.grid[row][col] == setting.EMPTY
 
     def place(self, row: int, col: int) -> bool:
-        if not self._in_bounds(row, col) or self.game_over or not self.is_empty(row, col):
+        if (
+            not self._in_bounds(row, col)
+            or self.game_over
+            or not self.is_empty(row, col)
+        ):
             return False
 
         self.grid[row][col] = self.current_player

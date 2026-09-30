@@ -15,11 +15,11 @@ Run:  python -m app.seed
 import asyncio
 import random
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from passlib.context import CryptContext
 
-from app.database import Base, async_session, engine, init_db
+from app.database import Base, async_session, engine
 from app.models import Bot, BotRun, Client, Log, LogLevel, RunStatus, User
 from app.models.client import UserRole
 
@@ -29,7 +29,7 @@ random.seed(42)  # Deterministic so repeated runs give identical data
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 # ── Demo Client IDs (stable for dev) ────────────────────────────
@@ -113,7 +113,10 @@ def _make_runs(
 LOG_SCENARIOS: dict[str, list[tuple[LogLevel, str]]] = {
     "claims_processing": [
         (LogLevel.INFO, "Bot started — initializing browser session"),
-        (LogLevel.INFO, "Navigating to claims portal: https://portal.acme-health.example.com"),
+        (
+            LogLevel.INFO,
+            "Navigating to claims portal: https://portal.acme-health.example.com",
+        ),
         (LogLevel.INFO, "Login successful — session established"),
         (LogLevel.INFO, "Navigating to claims queue — {n} pending claims found"),
         (LogLevel.INFO, "Processing claim #CLM-2024-{seq:05d} — patient: {patient}"),
@@ -127,11 +130,17 @@ LOG_SCENARIOS: dict[str, list[tuple[LogLevel, str]]] = {
         (LogLevel.INFO, "Processing claim #CLM-2024-{seq3:05d} — patient: {patient3}"),
         (LogLevel.INFO, "Claim #CLM-2024-{seq3:05d} submitted successfully"),
         (LogLevel.WARNING, "Duplicate claim detected — skipping CLM-2024-{dup:05d}"),
-        (LogLevel.INFO, "Batch complete — {processed} claims processed, {skipped} skipped"),
+        (
+            LogLevel.INFO,
+            "Batch complete — {processed} claims processed, {skipped} skipped",
+        ),
     ],
     "eligibility_verification": [
         (LogLevel.INFO, "Bot started — initializing headless browser"),
-        (LogLevel.INFO, "Loading clearinghouse portal: https://ch.acme-health.example.com"),
+        (
+            LogLevel.INFO,
+            "Loading clearinghouse portal: https://ch.acme-health.example.com",
+        ),
         (LogLevel.INFO, "Login successful — 2FA verification bypassed (saved session)"),
         (LogLevel.INFO, "Fetching patient roster — {n} pending verifications"),
         (LogLevel.INFO, "Verifying eligibility: Patient #PT-{id1} — {payer1}"),
@@ -152,7 +161,10 @@ LOG_SCENARIOS: dict[str, list[tuple[LogLevel, str]]] = {
         (LogLevel.ERROR, "Failed to process DEN-{seq3} — payer portal returned 500"),
         (LogLevel.INFO, "Retrying DEN-{seq3} in 30 seconds..."),
         (LogLevel.INFO, "DEN-{seq3} retry successful — categorized as: Timely filing"),
-        (LogLevel.INFO, "Categorizing denial #DEN-{seq4} — reason: Non-covered service"),
+        (
+            LogLevel.INFO,
+            "Categorizing denial #DEN-{seq4} — reason: Non-covered service",
+        ),
         (LogLevel.INFO, "Batch complete — {processed} denials processed"),
     ],
     "payment_posting": [
@@ -162,7 +174,10 @@ LOG_SCENARIOS: dict[str, list[tuple[LogLevel, str]]] = {
         (LogLevel.INFO, "Matched {matched} payments to patient accounts"),
         (LogLevel.INFO, "Posting payment ${amt1} to account #AC-2024-{acct1}"),
         (LogLevel.INFO, "Posting payment ${amt2} to account #AC-2024-{acct2}"),
-        (LogLevel.DEBUG, "Reconciliation check: batch total = ${total}, posted = ${total} ✓"),
+        (
+            LogLevel.DEBUG,
+            "Reconciliation check: batch total = ${total}, posted = ${total} ✓",
+        ),
         (LogLevel.INFO, "All ERA payments posted successfully"),
     ],
     "policy_renewal": [
@@ -172,7 +187,10 @@ LOG_SCENARIOS: dict[str, list[tuple[LogLevel, str]]] = {
         (LogLevel.INFO, "Generating renewal notice for Policy #POL-{pol1}"),
         (LogLevel.INFO, "Renewal notice sent to: {email1}"),
         (LogLevel.INFO, "Generating renewal notice for Policy #POL-{pol2}"),
-        (LogLevel.WARNING, "Policy #POL-{pol3} — premium increase > 15%, flagging for review"),
+        (
+            LogLevel.WARNING,
+            "Policy #POL-{pol3} — premium increase > 15%, flagging for review",
+        ),
         (LogLevel.INFO, "Batch complete — {processed} notices sent, {flagged} flagged"),
     ],
     "quote_generation": [
@@ -188,15 +206,33 @@ LOG_SCENARIOS: dict[str, list[tuple[LogLevel, str]]] = {
     "collections_processing": [
         (LogLevel.INFO, "Bot started — loading overdue accounts"),
         (LogLevel.INFO, "Found {n} accounts with overdue premiums"),
-        (LogLevel.INFO, "Sending reminder email to: {email1} — ${amt1} overdue, {days1} days"),
-        (LogLevel.INFO, "Sending reminder email to: {email2} — ${amt2} overdue, {days2} days"),
-        (LogLevel.WARNING, "Account #ACC-{acct1} — 90+ days overdue, escalating to collections agency"),
+        (
+            LogLevel.INFO,
+            "Sending reminder email to: {email1} — ${amt1} overdue, {days1} days",
+        ),
+        (
+            LogLevel.INFO,
+            "Sending reminder email to: {email2} — ${amt2} overdue, {days2} days",
+        ),
+        (
+            LogLevel.WARNING,
+            "Account #ACC-{acct1} — 90+ days overdue, escalating to collections agency",
+        ),
         (LogLevel.INFO, "Generating dunning letter for Account #ACC-{acct2}"),
         (LogLevel.INFO, "Batch complete — {sent} reminders, {escalated} escalated"),
     ],
 }
 
-PATIENTS = ["John D.", "Sarah M.", "Robert K.", "Emily W.", "Michael T.", "Lisa R.", "David P.", "Jennifer H."]
+PATIENTS = [
+    "John D.",
+    "Sarah M.",
+    "Robert K.",
+    "Emily W.",
+    "Michael T.",
+    "Lisa R.",
+    "David P.",
+    "Jennifer H.",
+]
 PAYERS = ["Aetna PPO", "UHC HMO", "BCBS Gold", "Cigna EPO", "Humana Medicare"]
 DIAGNOSIS_CODES = ["E11.65", "M54.5", "J06.9", "I10", "K21.0", "Z23"]
 
@@ -243,8 +279,8 @@ def _generate_logs(run: BotRun, process_name: str) -> list[Log]:
             pol1=random.randint(10000, 19999),
             pol2=random.randint(10000, 19999),
             pol3=random.randint(10000, 19999),
-            email1=f"client{random.randint(1,99)}@example.com",
-            email2=f"client{random.randint(1,99)}@example.com",
+            email1=f"client{random.randint(1, 99)}@example.com",
+            email2=f"client{random.randint(1, 99)}@example.com",
             applicant1=random.choice(PATIENTS),
             applicant2=random.choice(PATIENTS),
             rate1=f"{random.uniform(80, 500):.2f}",
@@ -258,33 +294,39 @@ def _generate_logs(run: BotRun, process_name: str) -> list[Log]:
             escalated=random.randint(0, 3),
         )
 
-        logs.append(Log(
-            id=str(uuid.uuid4()),
-            run_id=run.id,
-            client_id=run.client_id,
-            level=level,
-            message=msg,
-            timestamp=start + timedelta(seconds=i * random.uniform(8, 30)),
-        ))
+        logs.append(
+            Log(
+                id=str(uuid.uuid4()),
+                run_id=run.id,
+                client_id=run.client_id,
+                level=level,
+                message=msg,
+                timestamp=start + timedelta(seconds=i * random.uniform(8, 30)),
+            )
+        )
 
     # If the run failed, tack on error logs
     if run.status == RunStatus.FAILED:
-        logs.append(Log(
-            id=str(uuid.uuid4()),
-            run_id=run.id,
-            client_id=run.client_id,
-            level=LogLevel.ERROR,
-            message=run.error_message or "Unknown error",
-            timestamp=start + timedelta(seconds=len(scenario) * 15 + 5),
-        ))
-        logs.append(Log(
-            id=str(uuid.uuid4()),
-            run_id=run.id,
-            client_id=run.client_id,
-            level=LogLevel.CRITICAL,
-            message="Bot execution terminated — see error above",
-            timestamp=start + timedelta(seconds=len(scenario) * 15 + 10),
-        ))
+        logs.append(
+            Log(
+                id=str(uuid.uuid4()),
+                run_id=run.id,
+                client_id=run.client_id,
+                level=LogLevel.ERROR,
+                message=run.error_message or "Unknown error",
+                timestamp=start + timedelta(seconds=len(scenario) * 15 + 5),
+            )
+        )
+        logs.append(
+            Log(
+                id=str(uuid.uuid4()),
+                run_id=run.id,
+                client_id=run.client_id,
+                level=LogLevel.CRITICAL,
+                message="Bot execution terminated — see error above",
+                timestamp=start + timedelta(seconds=len(scenario) * 15 + 10),
+            )
+        )
 
     return logs
 
@@ -418,7 +460,8 @@ async def seed() -> None:
 
         for i, bid in enumerate(bot_ids_a):
             runs = _make_runs(
-                bid, CLIENT_A_ID,
+                bid,
+                CLIENT_A_ID,
                 count=acme_run_counts[i],
                 days_back=30,
                 success_pct=acme_success_rates[i],
@@ -440,7 +483,8 @@ async def seed() -> None:
 
         for i, bid in enumerate(bot_ids_b):
             runs = _make_runs(
-                bid, CLIENT_B_ID,
+                bid,
+                CLIENT_B_ID,
                 count=pinnacle_run_counts[i],
                 days_back=30,
                 success_pct=pinnacle_success_rates[i],
@@ -466,7 +510,10 @@ async def seed() -> None:
         # Live logs for the running run
         running_logs = [
             (LogLevel.INFO, "Bot started — initializing browser session"),
-            (LogLevel.INFO, "Navigating to claims portal: https://portal.acme-health.example.com"),
+            (
+                LogLevel.INFO,
+                "Navigating to claims portal: https://portal.acme-health.example.com",
+            ),
             (LogLevel.INFO, "Login successful — session established"),
             (LogLevel.INFO, "Navigating to claims queue — 47 pending claims found"),
             (LogLevel.INFO, "Processing claim #CLM-2024-00893 — patient: John D."),
@@ -480,20 +527,28 @@ async def seed() -> None:
             (LogLevel.DEBUG, "OCR scan on denial_letter_895.pdf — extracted 3 fields"),
             (LogLevel.INFO, "Claim #CLM-2024-00895 submitted successfully"),
             (LogLevel.INFO, "Processing claim #CLM-2024-00896 — patient: Emily W."),
-            (LogLevel.WARNING, "Duplicate claim detected — matches #CLM-2024-00847, skipping"),
+            (
+                LogLevel.WARNING,
+                "Duplicate claim detected — matches #CLM-2024-00847, skipping",
+            ),
             (LogLevel.INFO, "Processing claim #CLM-2024-00897 — patient: Michael T."),
             (LogLevel.INFO, "Claim #CLM-2024-00897 submitted successfully"),
-            (LogLevel.INFO, "Batch progress — 4 of 47 claims processed, 1 duplicate skipped"),
+            (
+                LogLevel.INFO,
+                "Batch progress — 4 of 47 claims processed, 1 duplicate skipped",
+            ),
         ]
         for j, (level, msg) in enumerate(running_logs):
-            all_logs.append(Log(
-                id=str(uuid.uuid4()),
-                run_id=running_run.id,
-                client_id=CLIENT_A_ID,
-                level=level,
-                message=msg,
-                timestamp=running_run.start_time + timedelta(seconds=j * 10),
-            ))
+            all_logs.append(
+                Log(
+                    id=str(uuid.uuid4()),
+                    run_id=running_run.id,
+                    client_id=CLIENT_A_ID,
+                    level=level,
+                    message=msg,
+                    timestamp=running_run.start_time + timedelta(seconds=j * 10),
+                )
+            )
 
         session.add_all(all_runs)
         session.add_all(all_logs)
@@ -506,12 +561,14 @@ async def seed() -> None:
         running = sum(1 for r in all_runs if r.status == RunStatus.RUNNING)
 
         print("✅ Database seeded successfully!")
-        print(f"   Clients:  2  (Acme Healthcare, Pinnacle Insurance)")
-        print(f"   Users:    3  (admin, viewer@acme, admin@pinnacle)")
-        print(f"   Bots:     7  (4 Acme + 3 Pinnacle)")
-        print(f"   Runs:     {len(all_runs)}  ({succeeded} success, {failed} failed, {running} running)")
+        print("   Clients:  2  (Acme Healthcare, Pinnacle Insurance)")
+        print("   Users:    3  (admin, viewer@acme, admin@pinnacle)")
+        print("   Bots:     7  (4 Acme + 3 Pinnacle)")
+        print(
+            f"   Runs:     {len(all_runs)}  ({succeeded} success, {failed} failed, {running} running)"
+        )
         print(f"   Logs:     {len(all_logs)}")
-        print(f"   Spanning: 30 days of historical data")
+        print("   Spanning: 30 days of historical data")
 
 
 if __name__ == "__main__":

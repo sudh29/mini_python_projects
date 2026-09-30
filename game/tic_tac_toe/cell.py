@@ -21,7 +21,9 @@ class Cell:
         self._has_symbol = False
         self._win_highlighted = False
 
-    def create_btn_object(self, location: Frame, on_click: Callable[[Cell], None]) -> None:
+    def create_btn_object(
+        self, location: Frame, on_click: Callable[[Cell], None]
+    ) -> None:
         btn = Button(
             location,
             font=self._font,
@@ -57,7 +59,10 @@ class Cell:
     def _current_bg(self) -> str:
         if self._win_highlighted:
             return setting.WIN_HIGHLIGHT_BG
-        if self.cell_btn_object is not None and str(self.cell_btn_object.cget("state")) == "disabled":
+        if (
+            self.cell_btn_object is not None
+            and str(self.cell_btn_object.cget("state")) == "disabled"
+        ):
             if not self._has_symbol:
                 return setting.CELL_DISABLED_BG
         return setting.CELL_BG

@@ -7,8 +7,8 @@ from app.schemas.bot import (
     BotStopRequest,
     BotWithStatus,
 )
-from app.schemas.bot_run import BotRunOut, BotRunListOut
-from app.schemas.log import LogOut, LogListOut
+from app.schemas.bot_run import BotRunListOut, BotRunOut
+from app.schemas.log import LogListOut, LogOut
 
 __all__ = [
     "BotCreate",

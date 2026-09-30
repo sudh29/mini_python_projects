@@ -1,6 +1,7 @@
 import logging
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
 import pandas as pd
 
 logging.basicConfig(
@@ -32,7 +33,7 @@ class DataCollector:
         logging.info("Generating mock tweet data.")
         tweets = []
         start_date_obj = datetime.strptime(self.since_date, "%Y-%m-%d").replace(
-            tzinfo=timezone.utc
+            tzinfo=UTC
         )
 
         positive_words = ["buy", "bullish", "profit", "up", "high", "rally"]

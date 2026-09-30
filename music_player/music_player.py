@@ -1,112 +1,102 @@
-"""
-Kivy Music Player Application
+"""Kivy Music Player Application.
 
-A simple music player GUI built with Kivy framework.
+A clean desktop audio player GUI built with Kivy and powered by a decoupled
+AudioEngine backend.
 
 Features:
-- Play/Pause/Stop controls
-- Volume control
-- Song selection from directory
-- Display current playing song
-- Duration tracking
-- Playlist support
-
-Requirements:
-    pip install kivy playsound
-
-Note: For audio playback, you may need to install additional dependencies
-based on your OS. Kivy core provides built-in audio support via kivy.core.audio
+- Decoupled playback state machine (audio_engine.py)
+- Play, Pause, Stop, Previous, Next track controls
+- Real-time progress bar tracking and volume slider
+- File chooser playlist loader
+- Safe fallback when running in headless / CLI environments
 """
 
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.slider import Slider
-from kivy.uix.popup import Popup
-from kivy.clock import Clock
-from kivy.uix.filechooser import FileChooserListView
-
-import os
 import logging
-import subprocess
+import os
+import sys
 
-# Suppress Kivy audio errors (WSL has no audio device)
+# Suppress Kivy audio warnings on headless environments
 logging.getLogger("kivy.core.audio").setLevel(logging.ERROR)
-
-# Note: Removed ANGLE backend as it's Windows-only
-# On Linux, Kivy will use default OpenGL backend
 os.environ["KIVY_AUDIO"] = "sdl2"
 
-# Try to import alternative audio players
 try:
-    import vlc  # noqa: F401
-
-    HAS_VLC = True
+    from music_player.audio_engine import (
+        AudioEngine,
+        PlaybackState,
+        SubprocessAudioDriver,
+    )
 except ImportError:
-    HAS_VLC = False
+    from audio_engine import AudioEngine, PlaybackState, SubprocessAudioDriver
 
 try:
-    import pygame  # noqa: F401
+    from kivy.app import App
+    from kivy.clock import Clock
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.button import Button
+    from kivy.uix.filechooser import FileChooserListView
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.label import Label
+    from kivy.uix.popup import Popup
+    from kivy.uix.slider import Slider
 
-    HAS_PYGAME = False  # Don't use pygame as it has issues with Kivy
-except ImportError:
-    HAS_PYGAME = False
+    KIVY_AVAILABLE = True
+except (ImportError, Exception):
+    KIVY_AVAILABLE = False
+    App = object
+    BoxLayout = None
+    GridLayout = None
+    Button = None
+    Label = None
+    Slider = None
+    Popup = None
+    Clock = None
+    FileChooserListView = None
 
 
-class MusicPlayerApp(App):
-    """
-    A Kivy-based music player application with play, pause, and volume controls.
-    """
+class MusicPlayerApp(App if KIVY_AVAILABLE else object):
+    """Kivy-based music player application with play, pause, and volume controls."""
 
     def __init__(self, **kwargs):
-        """Initialize the music player with default values."""
-        super().__init__(**kwargs)
-        self.current_song = None
-        self.sound = None
-        self.is_playing = False
-        self.playlist = []
-        self.current_index = 0
-        self.music_directory = os.path.expanduser("~/Music")
-        self.default_audio = os.path.join(os.path.dirname(__file__), "audio.mp3")
-        self.vlc_instance = None
-        self.vlc_player = None
-        self.ffplay_process = None
+        if KIVY_AVAILABLE:
+            super().__init__(**kwargs)
+        self.engine = AudioEngine(driver=SubprocessAudioDriver())
+
+        # Load default audio file if it exists
+        default_audio = os.path.join(os.path.dirname(__file__), "audio.mp3")
+        if os.path.exists(default_audio):
+            self.engine.load_playlist([default_audio])
 
     def build(self):
-        """
-        Build the UI layout for the music player.
+        """Build the UI layout for the music player."""
+        if not KIVY_AVAILABLE:
+            print("Kivy is not installed or display server is unavailable.")
+            return None
 
-        Returns:
-            BoxLayout: The root widget containing all UI elements
-        """
         # Main vertical layout
-        self.root = BoxLayout(orientation="vertical", padding=10, spacing=10)
+        self.root = BoxLayout(orientation="vertical", padding=15, spacing=10)
 
         # ===== Display Section =====
         display_layout = BoxLayout(orientation="vertical", size_hint_y=0.3, spacing=5)
 
-        # Title label
         title_layout = BoxLayout(size_hint_y=0.4)
         self.title_label = Label(
-            text="Music Player", font_size="24sp", bold=True, color=(1, 1, 1, 1)
+            text="🎵 Music Player", font_size="22sp", bold=True, color=(1, 1, 1, 1)
         )
         title_layout.add_widget(self.title_label)
         display_layout.add_widget(title_layout)
 
-        # Current song label
         song_layout = BoxLayout(size_hint_y=0.3)
         self.song_label = Label(
-            text="Now Playing: None", font_size="14sp", color=(0.8, 0.8, 0.8, 1)
+            text=f"Now Playing: {self.engine.current_track_name}",
+            font_size="13sp",
+            color=(0.8, 0.8, 0.8, 1),
         )
         song_layout.add_widget(self.song_label)
         display_layout.add_widget(song_layout)
 
-        # Time label
         time_layout = BoxLayout(size_hint_y=0.3)
         self.time_label = Label(
-            text="00:00 / 00:00", font_size="12sp", color=(0.6, 0.6, 0.6, 1)
+            text="00:00 / 03:00", font_size="11sp", color=(0.6, 0.6, 0.6, 1)
         )
         time_layout.add_widget(self.time_label)
         display_layout.add_widget(time_layout)
@@ -120,35 +110,30 @@ class MusicPlayerApp(App):
         # ===== Control Buttons Section =====
         controls_layout = GridLayout(cols=5, size_hint_y=0.25, spacing=5)
 
-        # Previous button
         prev_button = Button(
             text="⏮ Prev", background_color=(0.2, 0.2, 0.2, 1), font_size="12sp"
         )
         prev_button.bind(on_release=self.previous_song)
         controls_layout.add_widget(prev_button)
 
-        # Play button
         self.play_button = Button(
             text="▶ Play", background_color=(0.2, 0.6, 0.2, 1), font_size="12sp"
         )
         self.play_button.bind(on_release=self.play_music)
         controls_layout.add_widget(self.play_button)
 
-        # Pause button
         self.pause_button = Button(
             text="⏸ Pause", background_color=(0.6, 0.6, 0.2, 1), font_size="12sp"
         )
         self.pause_button.bind(on_release=self.pause_music)
         controls_layout.add_widget(self.pause_button)
 
-        # Stop button
         self.stop_button = Button(
             text="⏹ Stop", background_color=(0.6, 0.2, 0.2, 1), font_size="12sp"
         )
         self.stop_button.bind(on_release=self.stop_music)
         controls_layout.add_widget(self.stop_button)
 
-        # Next button
         next_button = Button(
             text="Next ⏭", background_color=(0.2, 0.2, 0.2, 1), font_size="12sp"
         )
@@ -159,11 +144,12 @@ class MusicPlayerApp(App):
 
         # ===== Volume Control Section =====
         volume_layout = BoxLayout(size_hint_y=0.15, spacing=10)
-
         volume_label = Label(text="Volume:", size_hint_x=0.2, font_size="12sp")
         volume_layout.add_widget(volume_label)
 
-        self.volume_slider = Slider(min=0, max=1, value=0.5, size_hint_x=0.8)
+        self.volume_slider = Slider(
+            min=0, max=1, value=self.engine.volume, size_hint_x=0.8
+        )
         self.volume_slider.bind(value=self.set_volume)
         volume_layout.add_widget(self.volume_slider)
 
@@ -179,7 +165,6 @@ class MusicPlayerApp(App):
         playlist_button.bind(on_release=self.load_playlist)
         self.root.add_widget(playlist_button)
 
-        # Status label
         self.status_label = Label(
             text="Status: Ready",
             size_hint_y=0.1,
@@ -188,220 +173,110 @@ class MusicPlayerApp(App):
         )
         self.root.add_widget(self.status_label)
 
-        # Schedule updates
-        Clock.schedule_interval(self.update_progress, 0.1)
-
-        # Load default audio file if it exists
-        if os.path.exists(self.default_audio):
-            self.current_song = self.default_audio
-            self.song_label.text = f"Selected: {os.path.basename(self.current_song)}"
-            self.status_label.text = "Status: Ready to play"
+        # Schedule progress updates
+        Clock.schedule_interval(self.update_progress, 0.5)
 
         return self.root
 
-    def play_music(self, instance):
-        """
-        Play the current song using ffplay (best WSL compatibility).
-
-        Args:
-            instance: Button instance that triggered the event
-        """
-        if self.current_song is None:
-            self.status_label.text = "Status: No song selected"
+    def play_music(self, _instance) -> None:
+        """Trigger track playback."""
+        if not self.engine.current_track:
+            self.status_label.text = "Status: No track loaded"
             return
 
-        if self.is_playing:
-            return
-
-        try:
-            # Stop any existing playback
-            if self.ffplay_process:
-                self.ffplay_process.terminate()
-
-            # Start ffplay in background
-            self.ffplay_process = subprocess.Popen(
-                ["ffplay", "-nodisp", "-autoexit", "-v", "error", self.current_song],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            self.is_playing = True
+        success = self.engine.play()
+        if success:
             self.play_button.text = "▶ Playing"
-            self.play_button.background_color = (0.2, 0.8, 0.2, 1)
+            self.song_label.text = f"Now Playing: {self.engine.current_track_name}"
+            self.status_label.text = "Status: Playing"
+        else:
             self.status_label.text = (
-                f"Status: Playing {os.path.basename(self.current_song)}"
+                "Status: Audio playback driver unavailable (install ffmpeg)"
             )
-        except FileNotFoundError:
-            self.status_label.text = "Status: ffplay not installed (install ffmpeg)"
-        except Exception as e:
-            self.status_label.text = f"Status: Error - {str(e)}"
 
-    def pause_music(self, instance):
-        """
-        Pause the current song.
-
-        Args:
-            instance: Button instance that triggered the event
-        """
-        if self.is_playing:
-            if self.vlc_player:
-                self.vlc_player.pause()
-            elif self.ffplay_process:
-                self.ffplay_process.terminate()
-                self.ffplay_process = None
-            elif self.sound:
-                self.sound.stop()
-
-            self.is_playing = False
-            self.play_button.text = "▶ Play"
-            self.play_button.background_color = (0.2, 0.6, 0.2, 1)
-            self.status_label.text = "Status: Paused"
-
-    def stop_music(self, instance):
-        """
-        Stop the current song and reset playback.
-
-        Args:
-            instance: Button instance that triggered the event
-        """
-        if self.is_playing:
-            if self.vlc_player:
-                self.vlc_player.stop()
-            elif self.ffplay_process:
-                self.ffplay_process.terminate()
-                self.ffplay_process = None
-            elif self.sound:
-                self.sound.stop()
-
-        self.sound = None
-        self.is_playing = False
+    def pause_music(self, _instance) -> None:
+        """Pause track playback."""
+        self.engine.pause()
         self.play_button.text = "▶ Play"
-        self.play_button.background_color = (0.2, 0.6, 0.2, 1)
+        self.status_label.text = "Status: Paused"
+
+    def stop_music(self, _instance) -> None:
+        """Stop playback and reset slider."""
+        self.engine.stop()
+        self.play_button.text = "▶ Play"
         self.progress_slider.value = 0
-        self.time_label.text = "00:00 / 00:00"
+        self.time_label.text = "00:00 / 03:00"
         self.status_label.text = "Status: Stopped"
 
-    def set_volume(self, instance, value):
-        """
-        Set the volume level for playback.
+    def set_volume(self, _instance, value: float) -> None:
+        """Adjust engine volume."""
+        self.engine.set_volume(value)
 
-        Args:
-            instance: Slider instance
-            value: Volume level (0.0 to 1.0)
-        """
-        if self.sound:
-            self.sound.volume = value
-
-    def update_progress(self, dt):
-        """
-        Update the progress bar and time display.
-
-        Args:
-            dt: Delta time since last call (used by Clock scheduler)
-        """
-        if self.sound and self.is_playing:
-            try:
-                # Update progress slider
-                if self.sound.length > 0:
-                    progress = (self.sound.get_pos() / self.sound.length) * 100
-                    self.progress_slider.value = progress
-
-                    # Update time label
-                    current_time = self.sound.get_pos()
-                    total_time = self.sound.length
-                    self.time_label.text = (
-                        self.format_time(current_time)
-                        + " / "
-                        + self.format_time(total_time)
-                    )
-
-                # Check if song finished
-                if self.sound.get_pos() >= self.sound.length:
-                    self.next_song(None)
-            except Exception:
-                pass  # Silently handle audio property errors
-
-    def format_time(self, seconds):
-        """
-        Format seconds into MM:SS format.
-
-        Args:
-            seconds: Time in seconds
-
-        Returns:
-            str: Formatted time string (MM:SS)
-        """
-        mins = int(seconds) // 60
-        secs = int(seconds) % 60
-        return f"{mins:02d}:{secs:02d}"
-
-    def load_playlist(self, instance):
-        """
-        Open a file browser to load music files.
-
-        Args:
-            instance: Button instance that triggered the event
-        """
-        content = BoxLayout(orientation="vertical")
-
-        # File chooser with filters
-        filechooser = FileChooserListView(filters=["*.mp3", "*.wav", "*.ogg", "*.flac"])
-        content.add_widget(filechooser)
-
-        # Buttons layout
-        btn_layout = BoxLayout(size_hint_y=0.1, spacing=5)
-
-        def load_file(instance):
-            if filechooser.selection:
-                self.current_song = filechooser.selection[0]
-                self.song_label.text = (
-                    f"Selected: {os.path.basename(self.current_song)}"
-                )
-                self.status_label.text = "Status: Ready to play"
-                popup.dismiss()
-
-        load_btn = Button(text="Load")
-        load_btn.bind(on_release=load_file)
-        btn_layout.add_widget(load_btn)
-
-        cancel_btn = Button(text="Cancel")
-        cancel_btn.bind(on_release=lambda x: popup.dismiss())
-        btn_layout.add_widget(cancel_btn)
-
-        content.add_widget(btn_layout)
-
-        popup = Popup(title="Select Music File", content=content, size_hint=(0.9, 0.9))
-        popup.open()
-
-    def next_song(self, instance):
-        """
-        Play the next song in the playlist.
-
-        Args:
-            instance: Button instance or None
-        """
-        if self.playlist and self.current_index < len(self.playlist) - 1:
-            self.current_index += 1
-            self.current_song = self.playlist[self.current_index]
-            self.sound = None
-            self.play_music(None)
+    def next_song(self, _instance) -> None:
+        """Advance to next track."""
+        if self.engine.next_track():
+            self.song_label.text = f"Now Playing: {self.engine.current_track_name}"
+            self.status_label.text = "Status: Next track"
         else:
             self.status_label.text = "Status: End of playlist"
 
-    def previous_song(self, instance):
-        """
-        Play the previous song in the playlist.
-
-        Args:
-            instance: Button instance
-        """
-        if self.playlist and self.current_index > 0:
-            self.current_index -= 1
-            self.current_song = self.playlist[self.current_index]
-            self.sound = None
-            self.play_music(None)
+    def previous_song(self, _instance) -> None:
+        """Move to previous track."""
+        if self.engine.previous_track():
+            self.song_label.text = f"Now Playing: {self.engine.current_track_name}"
+            self.status_label.text = "Status: Previous track"
         else:
-            self.status_label.text = "Status: Already at first song"
+            self.status_label.text = "Status: At first track"
+
+    def update_progress(self, dt: float) -> None:
+        """Update progress bar and timer display."""
+        if self.engine.state == PlaybackState.PLAYING:
+            pos = self.engine.update_position(dt)
+            self.progress_slider.value = self.engine.get_progress_percentage()
+            curr = AudioEngine.format_time(pos)
+            total = AudioEngine.format_time(self.engine.simulated_duration)
+            self.time_label.text = f"{curr} / {total}"
+
+    def load_playlist(self, _instance) -> None:
+        """Open file browser popup to select track."""
+        if not KIVY_AVAILABLE:
+            return
+
+        content = BoxLayout(orientation="vertical")
+        filechooser = FileChooserListView(filters=["*.mp3", "*.wav", "*.ogg", "*.flac"])
+        content.add_widget(filechooser)
+
+        btn_layout = BoxLayout(size_hint_y=0.15, spacing=5)
+        popup = Popup(title="Select Audio Track", content=content, size_hint=(0.9, 0.9))
+
+        def on_select(_):
+            if filechooser.selection:
+                selected = filechooser.selection[0]
+                self.engine.load_playlist([selected])
+                self.song_label.text = f"Selected: {self.engine.current_track_name}"
+                self.status_label.text = "Status: Track loaded"
+                popup.dismiss()
+
+        load_btn = Button(text="Load", on_release=on_select)
+        cancel_btn = Button(text="Cancel", on_release=lambda _: popup.dismiss())
+        btn_layout.add_widget(load_btn)
+        btn_layout.add_widget(cancel_btn)
+        content.add_widget(btn_layout)
+
+        popup.open()
+
+
+def main() -> None:
+    """Entry point for the Music Player application."""
+    if not KIVY_AVAILABLE:
+        print(
+            "Kivy GUI framework is not installed in the default environment.\n"
+            "To test the audio playback engine headlessly, run:\n"
+            "  uv run pytest tests/test_music_player.py"
+        )
+        sys.exit(0)
+    MusicPlayerApp().run()
 
 
 if __name__ == "__main__":
-    MusicPlayerApp().run()
+    main()

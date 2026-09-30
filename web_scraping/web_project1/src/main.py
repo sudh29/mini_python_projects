@@ -1,14 +1,23 @@
+"""End-to-end data collection, processing, and sentiment analysis pipeline."""
+
 import logging
 import os
-from datetime import datetime, timedelta, timezone
-from collection.collector import DataCollector
-from processing.processor import DataProcessor
-from analysis.analyzer import DataAnalyzer, Visualizer
+from datetime import UTC, datetime, timedelta
+
+try:
+    from web_scraping.web_project1.src.analysis.analyzer import DataAnalyzer, Visualizer
+    from web_scraping.web_project1.src.collection.collector import DataCollector
+    from web_scraping.web_project1.src.processing.processor import DataProcessor
+except ImportError:
+    from analysis.analyzer import DataAnalyzer, Visualizer
+    from collection.collector import DataCollector
+    from processing.processor import DataProcessor
 
 # Setup logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
+logger = logging.getLogger(__name__)
 
 
 class Pipeline:
@@ -19,6 +28,7 @@ class Pipeline:
     ):
         """
         Initializes the Pipeline.
+
         Args:
             hashtags: A list of hashtags for mock tweets.
             since_date: The start date for mock tweets (YYYY-MM-DD).
@@ -36,39 +46,51 @@ class Pipeline:
             self.data_dir, "sentiment_distribution.png"
         )
 
-    def run(self):
-        """Executes the entire data pipeline."""
-        logging.info("Starting the data pipeline.")
+    def run(self) -> bool:
+        """
+        Executes the entire data pipeline.
+
+        Returns:
+            bool: True if pipeline completed successfully, False otherwise.
+        """
+        logger.info("Starting the data pipeline.")
         os.makedirs(self.data_dir, exist_ok=True)
 
-        # Data Collection
+        # 1. Data Collection
         collector = DataCollector(self.hashtags, self.since_date, self.limit)
         raw_tweets_df = collector.generate_mock_tweets()
         if raw_tweets_df.empty:
-            logging.error("No tweets were collected. Exiting.")
-            return
+            logger.error("No tweets were collected. Exiting.")
+            return False
 
-        # Data Processing
+        # 2. Data Processing
         processor = DataProcessor(raw_tweets_df)
         processed_tweets_df = processor.process_tweets()
         if processed_tweets_df.empty:
-            logging.error("No tweets left after processing. Exiting.")
-            return
+            logger.error("No tweets left after processing. Exiting.")
+            return False
         processor.save_to_parquet(self.processed_data_path)
 
-        # Analysis and Visualization
+        # 3. Analysis and Visualization
         analyzer = DataAnalyzer(processed_tweets_df)
         analyzed_df = analyzer.perform_sentiment_analysis()
         visualizer = Visualizer(analyzed_df)
         visualizer.visualize_sentiment_distribution(self.visualization_path)
 
-        logging.info("Pipeline finished successfully.")
+        logger.info("Pipeline finished successfully.")
+        return True
+
+
+def run_default_pipeline(
+    limit: int = 200, output_dir: str = "web_scraping/web_project1/src/data"
+) -> bool:
+    """Run the pipeline with default configuration."""
+    hashtags = ["#nifty50", "#sensex", "#intraday", "#banknifty"]
+    start_date = (datetime.now(UTC) - timedelta(days=1)).strftime("%Y-%m-%d")
+    pipeline = Pipeline(hashtags, start_date, limit, data_dir=output_dir)
+    return pipeline.run()
 
 
 if __name__ == "__main__":
-    hashtags_to_scrape = ["#nifty50", "#sensex", "#intraday", "#banknifty"]
-    start_date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
-    tweet_limit = 2000
-
-    pipeline = Pipeline(hashtags_to_scrape, start_date, tweet_limit)
-    pipeline.run()
+    success = run_default_pipeline()
+    exit(0 if success else 1)

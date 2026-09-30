@@ -3,15 +3,20 @@ Log API routes — fetch and stream logs for bot runs.
 Also includes internal endpoints for workers to post logs.
 """
 
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import BotRun, Log, LogLevel
-from app.schemas.log import LogOut, LogListOut
-from app.auth.dependencies import verify_worker_key, get_db, CurrentUser, get_current_user
+from app.auth.dependencies import (
+    CurrentUser,
+    get_current_user,
+    get_db,
+    verify_worker_key,
+)
+from app.models import Log, LogLevel
+from app.schemas.log import LogListOut, LogOut
 from app.services.run_service import RunService
 
 router = APIRouter(tags=["logs"])
@@ -28,7 +33,7 @@ async def get_run_logs(
     user: Annotated[CurrentUser, Depends(get_current_user)],
     service: Annotated[RunService, Depends(get_run_service)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    level: Optional[str] = Query(None, description="Filter by log level"),
+    level: str | None = Query(None, description="Filter by log level"),
     limit: int = Query(200, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ):
@@ -62,7 +67,11 @@ async def get_run_logs(
 
 
 # ── Internal: POST /api/internal/runs/{run_id}/logs ──────────────
-@router.post("/api/internal/runs/{run_id}/logs", status_code=201, dependencies=[Depends(verify_worker_key)])
+@router.post(
+    "/api/internal/runs/{run_id}/logs",
+    status_code=201,
+    dependencies=[Depends(verify_worker_key)],
+)
 async def post_run_log(
     run_id: str,
     body: dict,
@@ -74,7 +83,9 @@ async def post_run_log(
 
 
 # ── Internal: PUT /api/internal/runs/{run_id}/status ─────────────
-@router.put("/api/internal/runs/{run_id}/status", dependencies=[Depends(verify_worker_key)])
+@router.put(
+    "/api/internal/runs/{run_id}/status", dependencies=[Depends(verify_worker_key)]
+)
 async def update_run_status(
     run_id: str,
     body: dict,

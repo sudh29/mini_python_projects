@@ -28,11 +28,13 @@ async def list_screenshots(
     screenshots = []
     for f in sorted(artifact_dir.iterdir()):
         if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
-            screenshots.append({
-                "filename": f.name,
-                "url": f"/api/screenshots/{run_id}/file/{f.name}",
-                "size_bytes": f.stat().st_size,
-            })
+            screenshots.append(
+                {
+                    "filename": f.name,
+                    "url": f"/api/screenshots/{run_id}/file/{f.name}",
+                    "size_bytes": f.stat().st_size,
+                }
+            )
 
     return {"screenshots": screenshots, "run_id": run_id}
 
