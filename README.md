@@ -5,7 +5,7 @@
 [![Tests](https://img.shields.io/badge/Tests-107%20Passed-brightgreen.svg?logo=pytest&logoColor=white)](file:///home/liber_primus/code/mini_python_projects/tests)
 [![Code Style: Ruff](https://img.shields.io/badge/Code%20Style-Ruff-black.svg?logo=ruff&logoColor=white)](https://github.com/astral-sh/ruff)
 [![Architecture: Clean](https://img.shields.io/badge/Architecture-Decoupled%20%26%20Tested-orange.svg)](#architecture--pillars)
-[![Quality Score](https://img.shields.io/badge/Quality%20Score-10.0%20%2F%2010.0-gold.svg)](#-quality-audit--score-matrix)
+[![Quality Score](https://img.shields.io/badge/Quality%20Score-10.0%20%2F%2010.0-gold.svg)](PLAN.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](file:///home/liber_primus/code/mini_python_projects/LICENSE)
 
 A modernized, production-grade Python monorepo showcasing clean architecture, modern concurrency, desktop GUI engineering, document processing, computer vision OCR, financial sentiment data pipelines, an algorithmic training suite, and an enterprise RPA control plane.
@@ -36,7 +36,6 @@ Every project has been refactored for **Python 3.12 & 3.13**, decoupled into ind
     - [Running Tests](#running-tests)
     - [Linting and Formatting with Ruff](#linting-and-formatting-with-ruff)
     - [Continuous Integration (CI/CD)](#continuous-integration-cicd)
-  - [📊 Quality Audit \& Score Matrix](#-quality-audit--score-matrix)
   - [🗺️ Project Documentation Index](#️-project-documentation-index)
 
 ---
@@ -268,21 +267,6 @@ Every push and pull request is automatically verified across Python 3.12 and 3.1
 2. Static analysis with `ruff check .`
 3. Style enforcement with `ruff format --check .`
 4. Automated test execution with `pytest`
-
----
-
-## 📊 Quality Audit & Score Matrix
-
-The repository underwent a rigorous 6-phase refactoring roadmap documented in detail in [`PLAN.md`](file:///home/liber_primus/code/mini_python_projects/PLAN.md):
-
-| Dimension | Initial Score | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Phase 5 | Final Score |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Architecture & Structure (2.0)** | 0.5 | 1.2 | 1.5 | 1.7 | 1.8 | 1.9 | **2.0 / 2.0** |
-| **Completeness & Working Code (1.5)** | 0.3 | 0.9 | 1.1 | 1.3 | 1.4 | 1.5 | **1.5 / 1.5** |
-| **Modern Tooling & `uv` (3.0)** | 0.5 | 2.1 | 2.5 | 2.8 | 2.9 | 3.0 | **3.0 / 3.0** |
-| **Testing & Coverage (2.0)** | 0.2 | 1.0 | 1.2 | 1.5 | 1.7 | 1.9 | **2.0 / 2.0** |
-| **Documentation & READMEs (1.5)** | 0.3 | 0.7 | 0.6 | 0.7 | 1.0 | 1.0 | **1.5 / 1.5** |
-| **Total Quality Score** | **1.8** | **5.9** | **6.9** | **8.0** | **8.8** | **9.3** | **10.0 / 10.0** |
 
 ---
 
